@@ -1,0 +1,112 @@
+# Pre-commit hooks — the same gates as CI, reached before the push rather than
+# after it. A gate reachable only by pushing is too slow to be used
+# (TECH_STACK.md §7).
+#
+# The project's own gates are `local` hooks calling scripts/ci/gate.sh, so
+# there is one definition of each check shared by pre-commit, `make check`, and
+# GitHub Actions. A hook holding its own copy of a command is a hook that will
+# eventually check something different from CI.
+#
+# Install with: make hooks
+
+minimum_pre_commit_version: "4.0.0"
+fail_fast: false
+
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: check-added-large-files
+        # Measurement data, model artefacts, and generated reports do not
+        # belong in git (see data/.gitignore, models/.gitignore). This catches
+        # the ones that slip past a path rule.
+        args: [--maxkb=512]
+      - id: detect-private-key
+
+  # Notebooks develop understanding; their output is unreviewable in a diff and
+  # can carry measured process data out of the data directory.
+  - repo: https://github.com/kynan/nbstripout
+    rev: "0.9.1"
+    hooks:
+      - id: nbstripout
+
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: G1 · Ruff format
+        entry: scripts/ci/gate.sh format
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi, toml]
+
+      - id: ruff-lint
+        name: G1 · Ruff lint
+        entry: scripts/ci/gate.sh lint
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi, toml]
+
+      - id: mypy
+        name: G2 · mypy --strict
+        entry: scripts/ci/gate.sh typecheck
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi, toml]
+
+      - id: import-linter
+        name: G3 · Architecture contracts
+        entry: scripts/ci/gate.sh architecture
+        language: system
+        pass_filenames: false
+        files: '^(src/|\.importlinter$)'
+
+      - id: docs-links
+        name: Documentation links and anchors
+        entry: scripts/ci/gate.sh docs
+        language: system
+        pass_filenames: false
+        types: [markdown]
+
+      - id: unit-tests
+        name: G4 · Unit tier
+        entry: scripts/ci/gate.sh unit
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi, toml]
+
+      # Reported separately from the unit tier, here as in CI. A failure means
+      # a number the platform produces is wrong.
+      - id: statistical-tests
+        name: G5 · Statistical validation tier
+        entry: scripts/ci/gate.sh statistical
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi, toml]
+
+      # gitleaks is a pinned, checksum-verified binary rather than a hook repo,
+      # so the same scanner version runs here, in `make check`, and in CI.
+      - id: gitleaks
+        name: G10 · Secret scan
+        entry: scripts/ci/gitleaks.sh
+        language: system
+        pass_filenames: false
+
+      - id: conventional-commit
+        name: Conventional Commits
+        entry: scripts/ci/check_commit_message.py
+        language: system
+        stages: [commit-msg]

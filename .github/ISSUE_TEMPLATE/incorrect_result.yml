@@ -1,0 +1,86 @@
+name: Incorrect statistical result
+description: A number the platform produced is wrong, or cannot be reproduced.
+title: "[S1] "
+labels: ["defect", "severity:S1", "statistical"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        This is severity **S1** by definition (QUALITY_ASSURANCE_PLAN.md §7):
+        work stops, and every result produced since the defect was introduced
+        has to be assessed. That assessment is possible only because each
+        output records its data, code, and configuration revision — so please
+        supply them below.
+
+  - type: textarea
+    id: value
+    attributes:
+      label: The number, and what it should be
+      description: >-
+        State the value produced, the value expected, and where the expected
+        value comes from. An expectation with no source is a claim, not a
+        reference.
+      placeholder: |
+        Produced: Cpk = 1.45
+        Expected: Cpk = 1.21
+        Source: hand computation below / NIST/SEMATECH §6.3.2 / Montgomery Example 8.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Provenance of the affected output
+      description: Copy these from the report, chart, or API response.
+      placeholder: |
+        Data revision:
+        Code revision:
+        Configuration revision:
+        Parameter / step / tool:
+        Baseline ID and effective date:
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: >-
+        The smallest input that shows the problem. Attach a dataset only if it
+        is synthetic — real fab data must not enter this repository.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where it surfaced
+      options:
+        - Control chart limits
+        - Run-rule signal or missing signal
+        - Capability index
+        - Measurement system analysis
+        - Variance decomposition
+        - Spatial signature
+        - Report or export
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: exposure
+    attributes:
+      label: Known exposure
+      description: >-
+        Which results, reports, or decisions may already rest on this number,
+        as far as you know. An incomplete answer is fine; an absent one is not.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confidentiality
+    attributes:
+      label: Before submitting
+      options:
+        - label: This report contains no real fab data, customer information, or credentials.
+          required: true

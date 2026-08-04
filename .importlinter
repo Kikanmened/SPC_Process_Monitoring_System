@@ -1,0 +1,230 @@
+; Architecture contracts — SYSTEM_ARCHITECTURE.md §2, MODULE_DESIGN.md §3.
+;
+; These are gate G3 (QUALITY_ASSURANCE_PLAN.md §3). The dependency rule is
+; enforced here rather than in review, because a rule that depends on reviewer
+; vigilance is a rule that will be broken.
+;
+; Run with: make architecture
+
+[importlinter]
+root_packages =
+    spc_platform
+include_external_packages = True
+
+; ---------------------------------------------------------------------------
+; Layers — the inward-only dependency rule
+; ---------------------------------------------------------------------------
+
+[importlinter:contract:layers]
+name = Hexagonal layering: dependencies point inward, without exception
+type = layers
+layers =
+    cli : api
+    pipelines : infrastructure
+    application
+    analytics
+    domain
+containers =
+    spc_platform
+
+; `cli` and `api` are interchangeable front doors and are also the composition
+; root, which is why they alone may reach infrastructure. `pipelines` and
+; `infrastructure` are independent siblings: a pipeline stage reaches storage
+; through an application port, never through an adapter directly.
+
+; ---------------------------------------------------------------------------
+; Domain — rule 1: imports nothing from this repository
+; ---------------------------------------------------------------------------
+
+[importlinter:contract:domain-is-self-contained]
+name = Domain imports nothing from this repository
+type = forbidden
+source_modules =
+    spc_platform.domain
+forbidden_modules =
+    spc_platform.analytics
+    spc_platform.application
+    spc_platform.infrastructure
+    spc_platform.pipelines
+    spc_platform.api
+    spc_platform.cli
+    spc_platform.config
+    spc_platform.common
+    spc_platform.observability
+    dashboard
+
+; ---------------------------------------------------------------------------
+; Analytics — rule 2: pure, and reachable only from domain and common
+; ---------------------------------------------------------------------------
+
+[importlinter:contract:analytics-internal-purity]
+name = Analytics imports domain and common only
+type = forbidden
+source_modules =
+    spc_platform.analytics
+forbidden_modules =
+    spc_platform.application
+    spc_platform.infrastructure
+    spc_platform.pipelines
+    spc_platform.api
+    spc_platform.cli
+    spc_platform.config
+    spc_platform.observability
+    dashboard
+
+[importlinter:contract:analytics-no-io]
+name = Analytics performs no I/O, no rendering, and no logging
+type = forbidden
+source_modules =
+    spc_platform.analytics
+forbidden_modules =
+    pandas
+    pyarrow
+    duckdb
+    sqlalchemy
+    alembic
+    psycopg
+    fastapi
+    uvicorn
+    typer
+    streamlit
+    plotly
+    matplotlib
+    jinja2
+    weasyprint
+    structlog
+    apscheduler
+    logging
+    pathlib
+    sqlite3
+    socket
+    time
+    requests
+    urllib
+
+; `pandas` is forbidden here deliberately: the analytics layer takes arrays,
+; not DataFrames (TECH_STACK.md §3), so a future migration away from pandas
+; touches no statistical code. `time` is forbidden because analytics reads no
+; clock — time is injected.
+
+; ---------------------------------------------------------------------------
+; Application — rule 3: depends on ports it defines itself, never on an adapter
+; ---------------------------------------------------------------------------
+
+[importlinter:contract:application-uses-ports]
+name = Application never imports a concrete adapter
+type = forbidden
+source_modules =
+    spc_platform.application
+forbidden_modules =
+    spc_platform.infrastructure
+    spc_platform.pipelines
+    spc_platform.api
+    spc_platform.cli
+    dashboard
+    duckdb
+    sqlalchemy
+    alembic
+    psycopg
+    streamlit
+    plotly
+    weasyprint
+
+; ---------------------------------------------------------------------------
+; Cross-cutting packages stay cross-cutting
+; ---------------------------------------------------------------------------
+
+[importlinter:contract:common-stays-primitive]
+name = Common holds primitives and depends on no layer above domain
+type = forbidden
+source_modules =
+    spc_platform.common
+forbidden_modules =
+    spc_platform.analytics
+    spc_platform.application
+    spc_platform.infrastructure
+    spc_platform.pipelines
+    spc_platform.api
+    spc_platform.cli
+    spc_platform.config
+    spc_platform.observability
+    dashboard
+
+[importlinter:contract:config-is-parsed-at-the-boundary]
+name = Configuration models depend on no layer that consumes them
+type = forbidden
+source_modules =
+    spc_platform.config
+forbidden_modules =
+    spc_platform.analytics
+    spc_platform.application
+    spc_platform.infrastructure
+    spc_platform.pipelines
+    spc_platform.api
+    spc_platform.cli
+    dashboard
+
+[importlinter:contract:observability-is-a-sink]
+name = Observability is written to, and reads nothing back
+type = forbidden
+source_modules =
+    spc_platform.observability
+forbidden_modules =
+    spc_platform.analytics
+    spc_platform.application
+    spc_platform.infrastructure
+    spc_platform.pipelines
+    spc_platform.api
+    spc_platform.cli
+    dashboard
+
+; ---------------------------------------------------------------------------
+; Presentation is always a leaf — MODULE_DESIGN.md §3
+; ---------------------------------------------------------------------------
+
+[importlinter:contract:presentation-is-a-leaf]
+name = Nothing in the application imports the dashboard
+type = forbidden
+source_modules =
+    spc_platform
+forbidden_modules =
+    dashboard
+
+; ---------------------------------------------------------------------------
+; Module dependency graph — MODULE_DESIGN.md §3, as it lands in analytics
+; ---------------------------------------------------------------------------
+;
+; Every layer here is optional, so the contract holds today and tightens
+; automatically as each package arrives in Phases 9–13. The owning module is
+; named beside each. This is deliberately a total order: it forbids every
+; edge the module graph prohibits, and permits some intra-layer edges the
+; graph does not require, which review catches.
+;
+; The two prohibitions the graph calls out by name both hold here: Module 3
+; cannot reach Module 7, and nothing reaches Module 9 (which has no analytics
+; package at all, because presentation contains zero computation).
+
+[importlinter:contract:module-graph-analytics]
+name = Analytics packages respect the module dependency graph
+type = layers
+; Reading downward: kpi is Module 5; impact is Module 8; comparison,
+; commonality, and variance are Module 7; scoring, detectors, and spatial are
+; Module 6; capability, msa, and distribution are Module 4; rules, charts, and
+; estimators are Module 3.
+layers =
+    (kpi)
+    (impact)
+    (comparison)
+    (commonality)
+    (variance)
+    (scoring)
+    (detectors)
+    (spatial)
+    (capability)
+    (msa)
+    (distribution)
+    (rules)
+    (charts)
+    (estimators)
+containers =
+    spc_platform.analytics

@@ -1,0 +1,71 @@
+name: Capability proposal
+description: Propose a capability the platform does not currently promise.
+labels: ["proposal", "needs-requirement"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Scope is controlled deliberately (R-10). A capability is built only
+        after it exists as an approved requirement in
+        `docs/PRODUCT_REQUIREMENTS.md`; proposals recorded in
+        `docs/MODULE_DESIGN.md` §5 are **not** approved and nothing may be
+        built against them. This issue is how a proposal becomes a decision
+        rather than an assumption.
+
+  - type: textarea
+    id: need
+    attributes:
+      label: The engineering need
+      description: >-
+        Whose problem this is, and what they do today instead. A capability
+        with no named user is a feature looking for a justification.
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What the platform would do
+      description: Behaviour, not implementation. Include the refusal cases.
+    validations:
+      required: true
+
+  - type: input
+    id: existing
+    attributes:
+      label: Existing requirement or proposal identifier
+      description: >-
+        An FR-…/NFR-… this extends, a proposed identifier from MODULE_DESIGN.md
+        §5 (FR-K…, FR-AD…, FR-RC…, FR-CC…), or "none".
+    validations:
+      required: true
+
+  - type: input
+    id: module
+    attributes:
+      label: Owning module
+      description: One of the ten in docs/MODULE_DESIGN.md §2.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Statistical and standards basis
+      description: >-
+        If this involves a computation, name the method and a publicly
+        obtainable source for it (NIST/SEMATECH or Montgomery). If there is
+        none, say so — that is a legitimate answer and it changes the decision.
+    validations:
+      required: true
+
+  - type: textarea
+    id: nongoal
+    attributes:
+      label: Conflicts with a recorded non-goal
+      description: >-
+        Check SYSTEM_ARCHITECTURE.md §10 and PRODUCT_REQUIREMENTS.md. If this
+        conflicts with a deliberate non-goal, say which one and why the
+        reasoning behind it has changed.
+    validations:
+      required: true

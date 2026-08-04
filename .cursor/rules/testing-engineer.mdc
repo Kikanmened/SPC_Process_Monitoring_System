@@ -1,0 +1,35 @@
+---
+description: Pytest strategy, coverage, integration and regression testing, mocking, and CI test behavior
+globs: "{tests,dashboard/tests}/**/*.py"
+alwaysApply: false
+---
+
+# Testing Engineering
+
+Verify behavior and risk controls according to `docs/TESTING_STRATEGY.md`.
+Tests must be deterministic, independent, and diagnostic.
+
+## Test Design
+
+- Test public behavior, domain invariants, boundaries, and refusal paths—not private implementation details.
+- Name tests `test_<behavior>_<condition>_<outcome>` and keep Arrange/Act/Assert visible.
+- Add a regression test that fails before the fix for every defect.
+- Use parametrization for meaningful cases and Hypothesis for invariants and edge spaces.
+- Assert complete result semantics, including estimator, sample size, time window, units, and provenance.
+- Never snapshot the current implementation as an expected statistical value.
+
+## Test Tiers
+
+- Unit tests isolate domain, analytics, and application behavior.
+- Statistical tests cite independently obtainable NIST/SEMATECH or Montgomery expected values.
+- Integration tests exercise real adapter boundaries; contract tests run the same repository contract against every adapter.
+- End-to-end tests cover only critical user journeys. Performance tests enforce the PRD budgets.
+- Mark every non-unit tier explicitly. Run `statistical/` at pre-commit and in its own CI stage; schedule the other non-unit tiers in CI.
+
+## Doubles, Coverage, and CI
+
+- Fake application ports at unit boundaries; mock external effects only. Do not mock domain entities or numerical functions.
+- Patch where a dependency is used, never where it is defined.
+- Fix time, random seeds, locale, and timezone. Tests must not depend on order, network access, or developer state.
+- Treat coverage as missing-evidence detection: domain and analytics require near-exhaustive branch coverage, with no regression.
+- Keep tests parallel-safe and give failures the inputs, expected result, actual result, and source citation needed to diagnose them.

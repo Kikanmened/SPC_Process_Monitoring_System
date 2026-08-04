@@ -1,0 +1,27 @@
+# Specification limits with effective dates. Historical values are retained —
+# overwriting destroys the ability to assess past conformance (FR-CF03).
+specification_limits:
+  - parameter_id: OXIDE_THK
+    product_id: DEV-A
+    step_id: OXIDE_GROW
+    unit: nm
+    lsl: 9.5
+    usl: 10.5
+    target: 10.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: POLY_CD
+    product_id: DEV-A
+    step_id: POLY_ETCH
+    unit: nm
+    lsl: 38.0
+    usl: 42.0
+    target: 40.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: PARTICLE_COUNT
+    product_id: DEV-A
+    step_id: OXIDE_GROW
+    unit: count
+    usl: 50.0
+    effective_from: "2025-01-01T00:00:00+00:00"

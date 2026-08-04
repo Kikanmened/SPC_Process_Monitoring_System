@@ -1,0 +1,23 @@
+# Declared units and conversions. A unit not listed here cannot appear on a
+# measurement. Conversions are explicit; nothing is inferred from magnitude.
+units:
+  - nm
+  - um
+  - angstrom
+  - ohm_per_sq
+  - count
+  - percent
+
+conversions:
+  - source: um
+    target: nm
+    factor: 1000.0
+  - source: nm
+    target: um
+    factor: 0.001
+  - source: angstrom
+    target: nm
+    factor: 0.1
+  - source: nm
+    target: angstrom
+    factor: 10.0

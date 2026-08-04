@@ -1,0 +1,223 @@
+# Semiconductor Manufacturing SPC Monitoring Platform
+#
+# Every direct dependency below is justified in docs/TECH_STACK.md, which names
+# the alternative rejected. Adding one here without that entry is incomplete.
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "spc-platform"
+version = "0.7.0"
+description = "Statistical process control monitoring platform for semiconductor wafer fabrication"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+# Internal on-premises software. The classifier is a guard against an
+# accidental upload, not a distribution intent.
+classifiers = ["Private :: Do Not Upload"]
+
+dependencies = [
+  # Validation and typed configuration — TECH_STACK.md §4
+  "pydantic>=2.9",
+  "pydantic-settings>=2.5",
+  "pyyaml>=6.0",
+  "pandera>=0.20",
+  # Numerical and statistical core — TECH_STACK.md §3
+  "numpy>=2.1",
+  "scipy>=1.14",
+  "statsmodels>=0.14",
+  "pandas>=2.2",
+  "pyarrow>=17",
+  # Storage — TECH_STACK.md §5
+  "duckdb>=1.1",
+  "sqlalchemy>=2.0",
+  "alembic>=1.13",
+  "psycopg[binary]>=3.2",
+  # Application interfaces — TECH_STACK.md §6
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "typer>=0.12",
+  "streamlit>=1.38",
+  "plotly>=5.24",
+  "matplotlib>=3.9",
+  "jinja2>=3.1",
+  "weasyprint>=62",
+  # Operations — TECH_STACK.md §8
+  "structlog>=24.4",
+  "apscheduler>=3.10",
+]
+
+# The `spc` console entry point is declared in Phase 11, with the CLI that
+# backs it. A script pointing at a module that does not exist is a broken
+# promise the packaging metadata cannot catch.
+
+[dependency-groups]
+dev = [
+  # Quality gates — TECH_STACK.md §7, QUALITY_ASSURANCE_PLAN.md §3
+  "ruff>=0.7",
+  "mypy>=1.13",
+  "pytest>=8.3",
+  "pytest-cov>=5.0",
+  "pytest-xdist>=3.6",
+  "pytest-benchmark>=4.0",
+  "hypothesis>=6.112",
+  "import-linter>=2.1",
+  "bandit>=1.7",
+  "pip-audit>=2.7",
+  "pre-commit>=4.0",
+  # Stubs, so that an untyped import is never resolved with a blanket ignore.
+  # Further stub packages are added as each library's first import lands.
+  "types-pyyaml>=6.0",
+  "pandas-stubs>=2.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/spc_platform"]
+
+# ---------------------------------------------------------------------------
+# Ruff — CODING_STANDARDS.md §2
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests", "scripts"]
+# Markdown is excluded because Ruff would reformat the illustrative snippets in
+# docs/, where comment alignment and spacing are chosen to make a contrast
+# readable rather than to satisfy a formatter.
+extend-exclude = ["data", "logs", "models", "reports", "*.md"]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+  "E", "W",    # pycodestyle
+  "F",         # Pyflakes
+  "I",         # isort
+  "N",         # pep8-naming
+  "D",         # pydocstyle
+  "UP",        # pyupgrade
+  "ANN",       # flake8-annotations
+  "S",         # flake8-bandit
+  "B",         # flake8-bugbear
+  "A",         # flake8-builtins
+  "C4",        # flake8-comprehensions
+  "DTZ",       # flake8-datetimez — naive datetimes are banned outright
+  "T20",       # flake8-print
+  "PT",        # flake8-pytest-style
+  "RET",       # flake8-return
+  "SIM",       # flake8-simplify
+  "ARG",       # flake8-unused-arguments
+  "PTH",       # flake8-use-pathlib
+  "ERA",       # eradicate — no commented-out code
+  "PL",        # Pylint
+  "NPY",       # NumPy-specific rules
+  "RUF",       # Ruff-specific rules
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.isort]
+known-first-party = ["spc_platform"]
+
+[tool.ruff.lint.flake8-builtins]
+builtins-allowed-modules = ["types"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests assert, and a bare expected value in an assertion is the point of the
+# test rather than a magic number. Statistical tests keep D103: the docstring
+# is where the citation and the hand computation live (TESTING_STRATEGY.md §3).
+"tests/unit/**" = ["S101", "D103", "PLR2004"]
+"tests/integration/**" = ["S101", "D103", "PLR2004"]
+"tests/contract/**" = ["S101", "D103", "PLR2004"]
+"tests/e2e/**" = ["S101", "D103", "PLR2004"]
+"tests/performance/**" = ["S101", "D103", "PLR2004"]
+"tests/statistical/**" = ["S101", "PLR2004"]
+"tests/factories/**" = ["D103"]
+"tests/conftest.py" = ["D103"]
+# Scripts are operator-facing command-line tools; stdout is their interface.
+"scripts/**" = ["T20", "D103"]
+
+# ---------------------------------------------------------------------------
+# mypy — CODING_STANDARDS.md §3
+# ---------------------------------------------------------------------------
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+# Check the package tree under src/, not the `src` directory itself — naming
+# the package path avoids the duplicate-module error mypy raises when both
+# `src.spc_platform` and the installed `spc_platform` are visible.
+files = ["src/spc_platform", "tests", "scripts"]
+exclude = ["(?x)(^|/)tests/factories/"]
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+enable_error_code = [
+  "redundant-expr",
+  "truthy-bool",
+  "ignore-without-code",
+  "unused-awaitable",
+]
+# No blanket `ignore_missing_imports`. A library without stubs gets a narrowly
+# scoped override here, with a comment naming why no stub package exists.
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# ---------------------------------------------------------------------------
+# pytest — TESTING_STRATEGY.md §2
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config -ra --import-mode=importlib"
+xfail_strict = true
+filterwarnings = [
+  "error",
+  # Hypothesis falls back to an in-memory DB when .hypothesis is unwritable
+  # (sandbox, CI scratch). That is operational noise, not a test defect.
+  "ignore::hypothesis.errors.HypothesisWarning",
+]
+markers = [
+  "unit: fast and isolated; no network, filesystem, database, or wall clock",
+  "statistical: numerical correctness against a cited external reference",
+  "integration: real adapters against real dependencies",
+  "contract: port and boundary compatibility",
+  "e2e: one full path per critical user journey",
+  "performance: asserts a budget from SYSTEM_ARCHITECTURE.md §7",
+]
+
+# ---------------------------------------------------------------------------
+# Coverage — TESTING_STRATEGY.md §6. A diagnostic per area, not one number.
+# ---------------------------------------------------------------------------
+
+[tool.coverage.run]
+source = ["src/spc_platform"]
+branch = true
+parallel = true
+
+[tool.coverage.paths]
+source = ["src/spc_platform", "*/site-packages/spc_platform"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "@overload",
+  "raise NotImplementedError",
+]
+
+# ---------------------------------------------------------------------------
+# bandit — runs alongside Ruff's `S` rules; it reaches patterns Ruff does not.
+# ---------------------------------------------------------------------------
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", ".tools"]

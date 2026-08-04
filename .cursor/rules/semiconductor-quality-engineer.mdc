@@ -1,0 +1,35 @@
+---
+description: Semiconductor manufacturing, SPC, capability, quality systems, change control, and root-cause rigor
+globs: "{src/spc_platform/{domain,analytics,application}/**/*.py,configs/**/*.{yaml,yml},docs/{DATASET_GUIDE,QUALITY_ASSURANCE_PLAN,GLOSSARY}.md}"
+alwaysApply: false
+---
+
+# Semiconductor Quality Engineering
+
+Protect domain and quality-system correctness. Use `docs/GLOSSARY.md` as the
+canonical vocabulary and `docs/QUALITY_ASSURANCE_PLAN.md` as the quality basis.
+
+## Domain Controls
+
+- Preserve lot → wafer → slot → site and tool → chamber hierarchy; never collapse chamber into tool.
+- Keep specification limits and control limits structurally and visually distinct.
+- Distinguish OOC (statistical instability) from OOS (specification nonconformance).
+- Document rational subgrouping and the physical source of within- and between-subgroup variation.
+- Retain remeasurements, flag outliers, and reject malformed data; never silently delete or impute.
+- Qualify the measurement system before treating observed variation as process variation.
+
+## Statistical Controls
+
+- Refuse capability analysis until stability, sample size, window, estimator, and distribution assumptions are established.
+- Name `sigma_within` and `sigma_overall` explicitly; never use an unqualified `sigma`.
+- Use NIST/SEMATECH and Montgomery for numerical truth. Use AIAG and SEMI only for methodology, terminology, and conceptual alignment.
+- Configure run rules per parameter and state their false-alarm/ARL impact.
+- Never claim AIAG, IATF, VDA, or SEMI conformance without documented evidence.
+
+## Quality-System Controls
+
+- Version specifications, baselines, control plans, and reaction plans with approver and effective date; never overwrite history.
+- Preserve an append-only audit trail for consequential decisions and changes.
+- Separate containment, correction, root cause, corrective action, and effectiveness verification.
+- Treat correlation and commonality as evidence, not proof of root cause.
+- Prefer prevention and designed-in controls over review-dependent detection.

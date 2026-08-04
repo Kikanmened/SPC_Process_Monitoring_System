@@ -1,0 +1,16 @@
+# Generated reports are build output. Templates are source.
+#
+# Committed:   templates/
+# Not committed: generated/, figures/, exports/, audit_packages/
+#
+# Any report must be regenerable from a template plus a dataset revision.
+# If a report cannot be regenerated, that is a defect in the pipeline.
+
+generated/**
+figures/**
+exports/**
+audit_packages/**
+
+!**/.gitkeep
+!**/README.md
+!templates/**

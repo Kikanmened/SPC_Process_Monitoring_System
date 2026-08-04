@@ -1,0 +1,37 @@
+# The scheduled full run.
+#
+# Two obligations meet here. Security scanning runs on a schedule because a
+# dependency that was clean at merge may not be clean next month
+# (TECH_STACK.md §9), and the performance tier gets its full run outside a pull
+# request, where timing is less contended (TESTING_STRATEGY.md §4).
+#
+# It runs the same gates as CI, through the same script. A scheduled run that
+# checked something different would be a second definition of "green".
+
+name: Nightly
+
+on:
+  schedule:
+    # 02:30 UTC daily.
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  full-gate-set:
+    name: Every gate, in order
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - name: make check
+        run: make check

@@ -1,0 +1,98 @@
+# ---------------------------------------------------------------------------
+# Semiconductor Manufacturing SPC Monitoring Platform
+# Root ignore policy.
+#
+# Directory-scoped rules live in the directory they govern (e.g. data/.gitignore)
+# so that a folder's retention policy is readable next to its contents.
+# ---------------------------------------------------------------------------
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+sdist/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual environments --------------------------------------------------
+# Note: .python-version is deliberately NOT ignored. It is the interpreter pin
+# (ADR-0016) and must be committed, or the pin means nothing to anyone else.
+.venv/
+venv/
+env/
+ENV/
+
+# --- Tooling caches --------------------------------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.dmypy.json
+.hypothesis/
+.tox/
+.nox/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+coverage.json
+*.cover
+nosetests.xml
+.benchmarks/
+
+# Pinned scanner binaries fetched and checksum-verified by scripts/ci/.
+# The version is pinned in the script; the binary itself is a build artefact.
+# Note: .coverage-baseline.json is deliberately NOT ignored — the coverage
+# non-regression gate has nothing to compare against unless it is committed.
+.tools/
+
+# --- Notebooks -------------------------------------------------------------
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+profile_default/
+ipython_config.py
+
+# --- Secrets and local configuration ---------------------------------------
+# Never commit credentials for MES, YMS, EDA, or database endpoints.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+configs/secrets/*
+!configs/secrets/.gitkeep
+!configs/secrets/README.md
+!configs/secrets/*.example.yaml
+
+# --- IDE / OS --------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Cursor ----------------------------------------------------------------
+# Rules, commands, and context are versioned deliberately; local state is not.
+.cursor/local/
+.cursorindexingignore
+
+# --- Build / infra artefacts -----------------------------------------------
+*.log.gz
+.terraform/
+*.tfstate
+*.tfstate.backup
+node_modules/

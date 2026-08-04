@@ -1,0 +1,23 @@
+# Fab data is never committed. Git is not a data lake, and wafer-level
+# measurement data is customer-confidential in a foundry context.
+#
+# Committed:   schemas/, reference/ (small, reviewable, versioned contracts)
+# Not committed: raw/, external/, interim/, processed/, archive/, synthetic/
+#
+# Reproducibility is guaranteed by the generators in scripts/simulation/ and the
+# pipeline definitions in src/spc_platform/pipelines/, not by stored blobs.
+
+raw/**
+external/**
+interim/**
+processed/**
+archive/**
+synthetic/**
+
+# Keep the directory skeleton and its documentation.
+!**/.gitkeep
+!**/README.md
+
+# Reference and schema data are versioned deliberately.
+!reference/**
+!schemas/**

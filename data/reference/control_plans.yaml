@@ -1,0 +1,31 @@
+# The control plan is the specification this platform implements.
+control_plans:
+  - plan_id: CP-DEV-A-GATE
+    name: Device A gate module control plan
+    characteristics:
+      - parameter_id: OXIDE_THK
+        product_id: DEV-A
+        step_id: OXIDE_GROW
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_lot
+        ocap_id: OCAP-OXIDE-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: POLY_CD
+        product_id: DEV-A
+        step_id: POLY_ETCH
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-POLY-CD
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: PARTICLE_COUNT
+        product_id: DEV-A
+        step_id: OXIDE_GROW
+        chart_type: c
+        sample_size: 1
+        frequency: every_lot
+        ocap_id: OCAP-PARTICLES
+        rule_set_name: shewhart_only

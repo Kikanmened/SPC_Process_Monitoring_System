@@ -1,0 +1,33 @@
+---
+description: Minimal project-wide source-of-truth routing and safety constraints
+alwaysApply: true
+---
+
+# Project Core
+
+Build a trustworthy semiconductor SPC platform; correctness, traceability, and
+operator trust take precedence over speed or convenience.
+
+- Read `docs/PROJECT_PROGRESS.md` for current state before assuming a phase or
+  deliverable.
+- Use `docs/PRODUCT_REQUIREMENTS.md` for product intent,
+  `docs/SYSTEM_ARCHITECTURE.md` for boundaries, and `docs/GLOSSARY.md` for terms.
+- Use `docs/MODULE_DESIGN.md` and `docs/modules/` for module ownership,
+  interfaces, and where a file belongs. Requirements marked proposed there are
+  not approved and are not implementable.
+- Let path-scoped rules supply specialist guidance; do not apply one role's
+  conventions outside its scope.
+- Use the narrowest authoritative source needed. Do not scan or restate the
+  full documentation set.
+- Never invent requirements, statistical values, standards content, data, or
+  completed behavior.
+- When evidence is absent, state what is unknown; ask only when the missing
+  choice materially changes the result.
+- Never substitute a plausible default, swallow an error, or hide degraded
+  behavior in a quality-critical path.
+- Do not introduce real fab data, customer information, credentials, secrets,
+  or generated artifacts into source control.
+- Keep changes within the request, verify them proportionately, and update
+  affected source-of-truth documents together.
+- If authoritative sources conflict, surface the conflict before
+  implementation; never resolve it silently.

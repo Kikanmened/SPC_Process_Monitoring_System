@@ -1,0 +1,28 @@
+# Secret scanning configuration — objective Q7 (QUALITY_ASSURANCE_PLAN.md §1).
+#
+# The default rule set is extended, never replaced. Every entry below excludes
+# a directory that .gitignore already makes uncommittable, so nothing here can
+# hide a secret that could reach the repository — which is the only kind of
+# allowlist entry this project accepts.
+#
+# Adding a path that IS committable requires a recorded reason in the pull
+# request. A finding suppressed without one is indistinguishable from a
+# disclosed credential.
+
+title = "SPC platform secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Tool-managed directories that git never tracks"
+paths = [
+  '''^\.venv/''',
+  '''^\.tools/''',
+  '''^\.mypy_cache/''',
+  '''^\.pytest_cache/''',
+  '''^\.ruff_cache/''',
+  '''^htmlcov/''',
+  '''^node_modules/''',
+  '''^\.git/''',
+]

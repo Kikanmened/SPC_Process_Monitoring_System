@@ -1,0 +1,564 @@
+# Project Progress
+
+**Document owner:** Project lead
+**Status:** Living document — updated at the close of every working session
+**Last updated:** 2026-08-04
+
+The current state of the project in one place. This is the document to read
+first when resuming work after a break, and the one the AI agent should consult
+to establish where things stand rather than inferring it from the file tree.
+
+For the plan see [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md); for the
+release history see [CHANGELOG.md](../CHANGELOG.md).
+
+---
+
+## 1. Status at a glance
+
+| | |
+|---|---|
+| **Current phase** | Phase 8 — Synthetic fab data generator |
+| **Phases complete** | 7 of 15 |
+| **Application code** | Domain vocabulary, typed configuration, reference data, and zone schemas; no analytics yet |
+| **Repository** | Initialised, `main`, no remote configured, no commits yet |
+| **Last milestone** | M7 — domain model and typed configuration (2026-08-04) |
+| **Next milestone** | M8 — generator producing scoreable data |
+
+```
+Phase  1 ████████████ Structure              complete
+Phase  2 ████████████ Documentation          complete
+Phase  3 ████████████ Product requirements   complete
+Phase  4 ████████████ Cursor rules           complete
+Phase  5 ████████████ Module design          complete
+Phase  6 ████████████ Toolchain + CI         complete
+Phase  7 ████████████ Domain model           complete
+Phase  8 ░░░░░░░░░░░░ Data generator         next
+Phase  9 ░░░░░░░░░░░░ Analytics engine
+Phase 10 ░░░░░░░░░░░░ Pipelines + storage
+Phase 11 ░░░░░░░░░░░░ Application + API
+Phase 12 ░░░░░░░░░░░░ Dashboard
+Phase 13 ░░░░░░░░░░░░ Reporting + audit
+Phase 14 ░░░░░░░░░░░░ Deployment
+Phase 15 ░░░░░░░░░░░░ Advanced analytics (stretch)
+```
+
+## 2. Completed work
+
+### Phase 1 — Project structure · 2026-08-03
+
+96-directory production structure with a documented rationale for every
+top-level folder.
+
+- src layout under `src/spc_platform/` with hexagonal subdivision
+- Six-tier test structure, statistical validation separated as its own tier
+- Eight data zones with a one-directional flow contract
+- Scoped ignore policy: source committed, generated artefacts excluded,
+  directory skeleton preserved
+- READMEs in all thirteen top-level directories
+- `docs/architecture/repository-structure.md` as the canonical rationale
+- Git repository initialised on `main`
+
+**Verified:** artefacts in `data/raw/`, `logs/app/`, `models/artifacts/`, and
+`reports/generated/` confirmed ignored while the skeleton and documentation
+remain tracked.
+
+### Phase 2 — Project documentation · 2026-08-03
+
+Fifteen documents establishing context, architecture, standards, and plan
+before any implementation.
+
+- Domain framing and vocabulary: `PROJECT_CONTEXT`, `GLOSSARY`
+- Technical design: `SYSTEM_ARCHITECTURE`, `TECH_STACK`, `DECISION_LOG`
+  (15 ADRs)
+- Engineering discipline: `CODING_STANDARDS`, `TESTING_STRATEGY`
+- Data and quality system: `DATASET_GUIDE`, `QUALITY_ASSURANCE_PLAN`
+- Planning and tracking: `DEVELOPMENT_ROADMAP`, `RISK_REGISTER`,
+  `PROJECT_PROGRESS`, `CHANGELOG`
+- Operations: `DEPLOYMENT_PLAN`
+- Entry point: root `README`
+
+### Phase 3 — Product requirements · 2026-08-04
+
+[PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md) — the enterprise PRD, and
+the requirement baseline the remaining phases deliver against.
+
+- Six business objectives, each with a measurable success criterion
+- Product metrics separated from engineering metrics, so "the build is green"
+  is never mistaken for "the platform detects excursions"
+- Five personas, with the shift lead's question prioritised because it is asked
+  most often and under the most pressure
+- 74 functional requirements across eleven areas, each with an identifier and
+  a MoSCoW priority
+- Non-functional requirements in eight categories, with numeric budgets rather
+  than adjectives
+- Three Phase 2 open questions resolved as ADR-0016 through ADR-0018
+- Four user story epics; Given/When/Then acceptance criteria for the
+  highest-risk behaviours, including the refusals
+- Fourteen milestones mapped to phases, and a four-level definition of done
+
+**Design note:** the acceptance criteria deliberately specify what the system
+must **refuse** — no chart without a qualified baseline, no capability index on
+an unstable process — because those refusals are the requirements most likely
+to be quietly implemented as a helpful default (R-21).
+
+### Phase 4 — Cursor rules · 2026-08-04
+
+One lightweight global core plus six professional path-scoped rules in
+`.cursor/rules/`, each with one responsibility:
+
+- Project core — source-of-truth routing, uncertainty handling, scope
+  discipline, and universal safety constraints
+- Product management — requirement traceability, stories, acceptance criteria,
+  prioritization, and product change control
+- Semiconductor quality engineering — fab vocabulary, SPC, capability, MSA,
+  change control, and evidence-based root-cause practice
+- Senior Python architecture — dependency direction, SOLID, modular design,
+  reuse, patterns, and performance
+- Testing engineering — pytest strategy, tier boundaries, regression evidence,
+  mocking, coverage, and CI behavior
+- GitHub maintenance — branch and PR policy, Conventional Commits, issue
+  quality, Actions security, and repository hygiene
+- Documentation writing — Markdown, APIs, architecture, ADRs, READMEs, and
+  verifiable technical claims
+
+**Verified:** all seven rules use valid `.mdc` frontmatter and stay under 50
+lines. `project-core.mdc` is the only `alwaysApply: true` rule; all six
+specialists declare narrow path scopes and set `alwaysApply: false`. The core
+routes to authoritative project documents rather than duplicating them.
+
+### Phase 5 — Module design · 2026-08-04
+
+[MODULE_DESIGN.md](MODULE_DESIGN.md) plus ten specifications in
+[modules/](modules/), decomposing the platform into ten modules and mapping
+them onto the layers they are built inside.
+
+- Modules defined as **capability slices, not packages** — ten top-level
+  packages would put computation, orchestration, and I/O in one import unit and
+  break the inward-only rule
+- Ten specifications, each stating purpose, responsibilities, public interfaces,
+  dependencies, inputs, outputs, files to create, testing requirements,
+  documentation required, and extension points
+- An acyclic module dependency graph, intended to be encoded as `import-linter`
+  contracts in Phase 6
+- A requirement coverage map: every functional requirement area in the PRD has
+  an owning module
+- [ADR-0019](DECISION_LOG.md#adr-0019) recording the capability-slice decision
+  and the alternatives rejected
+
+**Design note:** four capabilities in the requested decomposition exceed the
+requirement baseline, and they are recorded as **proposed** identifiers rather
+than assumed — FR-K01 – FR-K06 (KPI), FR-AD01 – FR-AD04 (detector contract and
+scoring), FR-RC01 – FR-RC04 (evidence assembly), FR-CC01 – FR-CC06 (change
+control simulation). None is in the PRD, and nothing may be built against them
+until it is amended. Two boundaries were held rather than proposed away:
+Module 7 assembles root-cause *evidence* and never asserts a cause, and
+Module 6 delivers the detector contract and scoring harness while model-based
+detection stays gated behind Phase 15.
+
+### Phase 6 — Toolchain and CI foundation · 2026-08-04
+
+The mechanical quality gates, in place before the first line of application
+code so that nothing is ever written outside them.
+
+- `pyproject.toml` (PEP 621, src layout, `requires-python = ">=3.13,<3.14"`),
+  the `uv` environment, and a committed `uv.lock`
+- Ruff, `mypy --strict`, and pytest with a marker per test tier — the marker
+  applied from the directory in `tests/conftest.py`, and a test outside a tier
+  directory refused at collection
+- Ten `import-linter` contracts: the inward-only layer rule, domain
+  self-containment, analytics purity (including a ban on `pandas` and on
+  reading a clock), the port rule for the application layer, presentation as a
+  leaf, and the module dependency graph from
+  [MODULE_DESIGN.md](MODULE_DESIGN.md) §3
+- `pre-commit` with `nbstripout`, `gitleaks`, and a Conventional Commits
+  `commit-msg` hook enforcing the `stat:` marker
+- `Makefile` exposing every gate, and GitHub Actions running the same gates
+  through the same script
+- Issue templates, pull request template, and `CODEOWNERS`
+
+**Design note:** every gate has exactly one definition, in
+`scripts/ci/gate.sh`, and `make`, pre-commit, and GitHub Actions all call it by
+gate name ([ADR-0020](DECISION_LOG.md#adr-0020)). The alternative — each caller
+holding its own copy of the command — is how a green local run quietly stops
+meaning what a green pipeline means.
+
+**Verified by deliberate violation, not by assertion.** A `domain/` module
+importing `analytics/` broke two contracts; a `pandas` import in `analytics/`
+broke the purity contract; a planted credential was caught by `gitleaks`; a
+broken link and a broken anchor were caught by the documentation check; a
+non-conforming commit subject was rejected. Each was then removed and the gate
+returned to green.
+
+**Known partial:** the module dependency graph is encoded over the fourteen
+`analytics/` packages named in the module specifications, every layer marked
+optional so the contract tightens as each package lands in Phases 9–13. The
+module boundaries that live in `application/` are covered only by the
+layer-level contracts until those packages exist.
+
+### Phase 7 — Domain model and configuration · 2026-08-04
+
+The vocabulary of the fab as types, and the typed configuration system that
+every later module will parse once at the boundary.
+
+- Domain entities and value objects per
+  [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) §3.1: material hierarchy,
+  equipment, parameter, measurement, baseline, subgroup, violation, disposition,
+  chart/rule specs
+- **`SpecificationLimit` and `ControlLimit` as structurally distinct,
+  non-convertible types** — no shared constructor parameters, no conversion
+  methods, and a type-level unit test that fails if either is introduced
+  (FR-C06, ADR-0003)
+- `Measurement` carrying value, unit, timezone-aware timestamp, chamber,
+  metrology tool, and data revision (FR-D01)
+- Layered typed settings (`configs/base/` + environment overlay) with unknown
+  keys raising (FR-CF02); effective configuration revision hash (FR-RP02)
+- Unit registry with declared conversions only (FR-D08)
+- Committed reference data under `data/reference/` for a minimal gate-module
+  slice (parameters, specs, tools, steps, control plans)
+- Pandera schemas for raw / interim / processed zone boundaries
+  (`src/spc_platform/pipelines/schemas/`)
+- ADR-0020 recorded (single gate script) — it was referenced by Phase 6 but
+  had been missing from the decision log
+
+**Exit criteria met:** every domain invariant has a failing-construction test;
+ControlLimit cannot be built from a specification payload (and the reverse);
+`domain/` imports nothing from this repository (`import-linter` green); unknown
+configuration keys raise. `make check` passes with 64 unit tests.
+
+## 3. Decisions settled
+
+Twenty architecture decisions are recorded in
+[DECISION_LOG.md](DECISION_LOG.md). The five that most constrain everything
+that follows:
+
+1. **Specification and control limits are distinct, non-convertible types.**
+   The defining error of poor SPC tooling is made structurally impossible
+   rather than reviewed for.
+2. **Statistical validation is a separate test tier** with expected values from
+   NIST/SEMATECH and Montgomery exclusively — both publicly obtainable.
+   Snapshotting current output is prohibited.
+3. **SPC mathematics is implemented in-house** on NumPy/SciPy/statsmodels —
+   it is the substance of the project, not a dependency.
+4. **The data generator precedes the analytics engine**, so every detection
+   algorithm is scored against known ground truth from its first commit.
+5. **Deployment is on-premises with no external runtime dependencies**, because
+   that is how fabs actually operate.
+
+## 4. Open questions
+
+Tracked here until they become decisions. None currently blocks Phase 8.
+
+| # | Question | Needed by | Notes |
+|---|---|---|---|
+| ~~Q1~~ | ~~Confirm the Python version pin~~ | — | **Resolved 2026-08-04.** Python 3.13, pinned exactly, single supported version. [ADR-0016](DECISION_LOG.md#adr-0016) |
+| Q2 | Does the local demo profile need PostgreSQL parity, or is DuckDB alone sufficient for review? | Phase 10 | Leaning DuckDB-only; contract tests cover both dialects |
+| ~~Q3~~ | ~~Which reference datasets to standardise on for the statistical tier~~ | — | **Resolved 2026-08-04.** NIST/SEMATECH and Montgomery only for numerical expectations; AIAG for quality alignment, SEMI for domain conventions. [ADR-0017](DECISION_LOG.md#adr-0017) |
+| ~~Q4~~ | ~~Wafer map rendering approach in Streamlit~~ | — | **Resolved 2026-08-04.** Interactive Plotly primary, static images for export only. [ADR-0018](DECISION_LOG.md#adr-0018) |
+
+All questions raised during Phase 2 are now resolved. Phase 5 raised one:
+
+| # | Question | Needed by | Notes |
+|---|---|---|---|
+| Q5 | Are the twenty proposed requirements from module design approved, and does the PRD get amended to include them? | Phase 11 | FR-K01 – FR-K06, FR-AD01 – FR-AD04, FR-RC01 – FR-RC04, FR-CC01 – FR-CC06. Modules 5, 6, 7, and 8 are specified but partly unbuildable until this is settled ([MODULE_DESIGN.md](MODULE_DESIGN.md) §5) |
+
+New questions are added here as they arise.
+
+## 5. Active risks
+
+Full register in [RISK_REGISTER.md](RISK_REGISTER.md). Requiring attention now:
+
+| ID | Risk | Why it is live |
+|---|---|---|
+| R-20 | AI fabrication of statistical constants | Phase 4 added the behavioural controls and Phase 6 added the harness — a separately reported statistical tier and a ban on snapshotting. The citation requirement itself is still a review criterion, not a mechanical check, and it stays that way until Phase 9 gives it something to check. |
+| R-12 | Documentation drift | Twenty-eight documents exist against a package skeleton. Phase 6 made internal links and anchors a CI gate, which catches broken references but not stale claims. Divergence begins in earnest as Phase 7 lands real types. |
+| R-04 | Rational subgrouping error | Must be designed into the Phase 8 generator, or the Phase 9 benchmark cannot detect the mistake. Module 2 now carries the design constraint and its regression test. |
+| R-10 | Scope expansion | Phase 15 is deliberately gated, and Phase 5 recorded twenty proposed requirements rather than absorbing them. Approving them all would expand the release scope materially (Q5). |
+
+## 6. Next actions
+
+Phase 8, in order:
+
+1. Fab model configuration (~12 steps, ~25 parameters, parallel tools/chambers)
+2. Nested variance generator per [DATASET_GUIDE.md](DATASET_GUIDE.md) §4.2
+3. Ground-truth fault injection with manifests
+4. Deterministic reproduction from config + seed + code revision
+5. Exit checks: variance decomposition recovers configured components; spatial
+   signature is systematic; datasets regenerate byte-identically
+
+**Phase 8 exit check:** generated distributions match configured parameters
+within statistical tolerance; variance decomposition recovers the configured
+components; a dataset regenerates byte-identically from its manifest.
+
+## 7. Metrics
+
+Populated as the project progresses. Zeros below are accurate, not placeholders.
+
+| Metric | Current | Target |
+|---|---|---|
+| Phases complete | 7 / 15 | 15 |
+| Cursor rules | 7 | 7 |
+| Documentation files | 29 | — |
+| Identified requirements | 74 FR + 43 NFR | Traced to tests |
+| Proposed requirements awaiting approval | 20 | Approved or rejected (Q5) |
+| Modules specified | 10 / 10 | 10 |
+| Modules with code landed | 2 / 10 (partial: 10 utilities, schemas for 1–2) | 10 |
+| Unit tests | 64 | — |
+| Reference-validated statistical cases | 0 | Full reference set |
+| Type coverage | 100% under `mypy --strict` | 100% |
+| Architecture violations | 0 | 0 |
+| Detection rate (shifts ≥ 1.5σ) | n/a | ≥ 95% |
+| Measured ARL₀ deviation from theory | n/a | within ±15% |
+
+## 8. Session log
+
+Newest first. One entry per working session, recording what changed and what
+the next session should pick up.
+
+### 2026-08-04 — Phase 7: Domain model and configuration
+
+Implemented the fab vocabulary as frozen Pydantic types under
+`src/spc_platform/domain/`, with `SpecificationLimit` and `ControlLimit` kept
+structurally non-interchangeable — no conversion methods, no overlapping
+constructor fields, and tests that reject cross-shaped payloads. Measurement
+carries unit, timezone-aware timestamp, chamber, and metrology tool; sites
+outside the wafer radius and slots outside 1..25 raise at construction.
+
+Typed configuration loads `configs/base/` plus an environment overlay into
+immutable settings; an unknown key fails validation (FR-CF02). The unit
+registry permits only declared conversions. Committed reference data under
+`data/reference/` describes a minimal gate-module slice the Phase 8 generator
+will expand. Pandera schemas for the three data zones live in
+`pipelines/schemas/` and reject unknown columns, out-of-range slots, and sites
+outside the wafer.
+
+Also closed a Phase 6 documentation gap: ADR-0020 (one gate script for local
+and CI) is now in the decision log, which was the broken anchor `make check`
+had been failing on.
+
+**Verified:** `make check` green — 64 unit tests, `import-linter` reports
+domain self-contained, domain coverage ~94%.
+
+**Next:** Phase 8 — synthetic fab data generator.
+
+### 2026-08-04 — Phase 5: Module design
+
+Wrote [MODULE_DESIGN.md](MODULE_DESIGN.md) and ten module specifications in
+[modules/](modules/), decomposing the platform into the ten modules the user
+specified: ingestion, preprocessing, SPC engine, capability, KPI and trend,
+anomaly detection, root cause, change control simulation, dashboard and
+reporting, and utilities and configuration.
+
+The decomposition had to be reconciled with the existing hexagonal
+architecture, and the reconciliation is the most consequential thing in the
+document. **A module is a capability slice, not a package.** Ten top-level
+packages named after the ten modules would put statistical computation,
+orchestration, and I/O inside one import unit and break the inward-only rule
+that `import-linter` is meant to enforce. So modules decompose *responsibility*
+and layers continue to decompose *dependency*, with each module specification
+naming the layer each of its parts lands in. The module dependency graph is
+acyclic and is intended to become `import-linter` contracts in Phase 6.
+
+Four of the ten modules reach past the requirement baseline, and that gap is
+recorded rather than filled. Twenty **proposed** identifiers — FR-K01 – FR-K06,
+FR-AD01 – FR-AD04, FR-RC01 – FR-RC04, FR-CC01 – FR-CC06 — are listed as
+proposals in `MODULE_DESIGN.md` §5 and in each affected module. None is in the
+PRD, none carries a priority, and nothing may be built against them until the
+PRD is amended. That is now open question Q5.
+
+Two boundaries were held rather than proposed away. **Module 7 assembles
+root-cause evidence and never asserts a cause** — `EvidenceBundle` has no
+attribute in which a cause could be stored, and a cause reaches the record only
+through an attributed human disposition. That keeps the architecture's
+automated-root-cause non-goal intact while still delivering commonality,
+matched-tool comparison, variance decomposition, and spatial signature as
+evidence. **Module 6 delivers the detector contract and the ground-truth scoring
+harness**, while multivariate SPC and drift forecasting stay gated behind
+Phase 15. The contract is what a future model must satisfy to enter through the
+audited path rather than beside it.
+
+The user's Phase 5 definition superseded the roadmap's Toolchain label, as the
+Phase 4 definition did last session. Toolchain and CI is now Phase 6, Phases
+6–14 became 7–15, and milestones M5–M14 became M6–M15 with M5 now the module
+design baseline. **M9 is now the milestone that matters** — the analytics engine
+validation, previously M8. Propagated across the roadmap, PRD, progress
+tracker, README, structure document, changelog, risk register, decision log,
+four status headers, and one Cursor rule.
+
+**Next:** Phase 6, starting with `pyproject.toml` and the `uv` environment.
+
+### 2026-08-04 — Phase 4: Cursor rules
+
+Created one lightweight global `.mdc` rule and six path-scoped specialist rules
+under `.cursor/rules/`: project core, product manager, semiconductor quality
+engineer, senior Python architect, testing engineer, GitHub maintainer, and
+documentation writer. The core supplies only source-of-truth routing,
+uncertainty handling, and universal safety constraints. Specialist instructions
+activate only for relevant paths.
+
+The specialist rules encode the project's dangerous boundaries rather than
+generic job descriptions: control limits remain distinct from specifications;
+capability requires stability and a named estimator; numerical truth comes only from
+NIST/SEMATECH and Montgomery; dependencies point inward; statistical snapshots
+are prohibited; CI cannot hide failures; and documentation cannot claim
+compliance or production readiness without evidence.
+
+This activation model is intentional: loading all specialist roles globally
+would consume context on unrelated tasks and create conflicting instructions.
+One minimal core plus narrow specialists reduces token use and makes the active
+role deterministic from the file being changed.
+
+The user's Phase 4 definition superseded the roadmap's prior Toolchain label.
+Cursor rules are now Phase 4 and Toolchain/CI is Phase 5; Phases 6–14 did not
+move. M4 and M5 were updated accordingly across the PRD, roadmap, progress
+tracker, README, structure document, and changelog.
+
+**Next at close:** Toolchain/CI; subsequently moved to Phase 6 when the user
+defined module design as Phase 5.
+
+### 2026-08-04 — Phase 3: product requirements
+Wrote [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md), the enterprise PRD.
+Seventy-four functional and 43 non-functional requirements, each with an
+identifier and a priority, plus acceptance criteria in Given/When/Then form for
+the behaviours where getting it wrong is most costly.
+
+Two things shaped the document more than the template did. First, **business
+objectives BO-1 and BO-2 are deliberately stated as a pair** — detect real
+excursions, and keep the false-alarm rate low enough that engineers still trust
+the alarm. Either alone is trivially satisfiable by signalling on everything or
+on nothing, and only the pair describes a system anyone would actually use.
+Second, the acceptance criteria specify the **refusals** as explicitly as the
+features: no chart without a qualified baseline, no capability index on an
+unstable process, no statistic without its estimator and sample size. Those are
+the requirements most likely to be quietly softened into a helpful default
+during implementation (R-21), so they are written where a test can enforce them.
+
+Milestone **M8** (analytics engine validated; renumbered to M9 in Phase 5) is
+called out as the one that
+matters — it is where the project's central claim stops being a plan and
+becomes evidence.
+
+This inserted a new phase, so the roadmap renumbered: the former Phases 3–13
+are now 4–14, and the fourteen milestones M1–M14 map one-to-one onto them.
+Propagated across the roadmap, README, structure document, changelog, and the
+status headers of six documents. Two pre-existing phase-reference errors
+surfaced during the sweep and were corrected — `DATASET_GUIDE` and
+`TESTING_STRATEGY` had both been pointing at the wrong phase since Phase 2,
+which is R-12 arriving on schedule.
+**Next at close:** Toolchain/CI; subsequently moved to Phase 5 when the user
+defined Cursor rules as Phase 4.
+
+### 2026-08-04 — Wafer map rendering decided
+Q4 resolved as [ADR-0018](DECISION_LOG.md#adr-0018): interactive Plotly is the
+primary wafer map visualisation, static images are export artefacts only. The
+deciding requirement is drill-down — a static image can show a pattern but
+cannot answer "which wafer, and what was the value?", which is the question
+that follows within seconds of noticing one.
+
+Two failure modes were designed out rather than left to be discovered in
+review, and both are recorded as new risk **R-43** because they are correctness
+issues, not styling ones. **Per-wafer colour autoscaling** makes a wafer varying
+by 0.2 nm look identical to one varying by 20 nm, destroying the cross-wafer
+comparison the screen exists to support. **Perceptually non-uniform colour maps**
+(rainbow, jet) introduce sharp perceived boundaries across smooth data,
+manufacturing an apparent edge ring that is not in the measurements — the
+rendering fabricating exactly the signature it is meant to detect.
+
+Also settled: a `WaferMapView` value object as the seam, so the interactive
+figure and the static report export are two renderings of one computation and
+cannot disagree; a ~5 000 marker point budget with an explicit, labelled
+degradation to an aggregated view; and cache keys including data and
+configuration revision so a recalculated baseline invalidates automatically.
+
+R-42 narrowed to Plotly rendering performance at high point counts, which is
+the genuine residual and is bounded by the point budget.
+**Next:** the toolchain phase, starting with `pyproject.toml` and the `uv`
+environment.
+
+### 2026-08-04 — SEMI standards alignment (Layer 3 expanded)
+Layer 3 of [ADR-0017](DECISION_LOG.md#adr-0017) expanded from equipment
+communication standards alone to the full set relevant to a fab: E10 (equipment
+state / RAM), E79 (productivity, OEE), E90 (substrate tracking), E120/E125
+(equipment model), E142 (substrate mapping), E148 (time synchronisation), plus
+SECS/GEM and EDA. New document
+[domain/SEMI_STANDARDS_ALIGNMENT.md](domain/SEMI_STANDARDS_ALIGNMENT.md) records
+the full treatment; `SYSTEM_ARCHITECTURE.md` gains §9 summarising the three
+alignments with real architectural consequences.
+
+Those three are worth noting because they are load-bearing rather than
+decorative: **E120/E125** are why equipment is modelled as a tool → chamber
+hierarchy and `chamber_id` is a first-class field; **E10** is why `Tool` and
+`Chamber` carry state history and why baseline qualification must exclude
+engineering time rather than absorbing deliberate experimental variation into
+the control limits; **E148** is why every timestamp is timezone-aware, since
+clock skew between process and metrology tools produces misordered series that
+present as statistical defects but are data integrity defects.
+
+Same restriction as Layer 2: controlled publications, so conceptual alignment
+only — nothing reproduced, no numerical test dependency, no conformance
+claimed. E79/OEE is explicitly out of scope as a feature (R-10); only the
+vocabulary is aligned.
+**Next:** the toolchain phase, starting with `pyproject.toml` and the `uv`
+environment.
+
+### 2026-08-04 — Statistical reference hierarchy
+Q3 resolved and recorded as [ADR-0017](DECISION_LOG.md#adr-0017). The single
+list of reference sources in ADR-0004 was separating three different needs that
+had been collapsed together, so it is now an explicit three-layer hierarchy:
+**NIST/SEMATECH and Montgomery** are the sole authorities for numerical
+expectations in `tests/statistical/`; **AIAG** (SPC, MSA) governs terminology,
+acceptance bands, and quality-system alignment; **SEMI** standards govern data
+model naming and equipment interface conventions.
+
+AIAG and SEMI are excluded as numerical test dependencies — both are
+copyrighted commercial publications, and reproducing worked-example data from
+them carries a licensing exposure with no offsetting benefit. The
+recognition value AIAG brings is available through Layer 2 without reproducing
+anything. Layer 1 sources are publicly obtainable, so every numerical assertion
+is checkable by any reviewer.
+
+Propagated to eight documents. ADR-0004 was not rewritten — it carries an
+amendment pointer to ADR-0017, per the immutability rule for decision records.
+**Next:** the toolchain phase, starting with `pyproject.toml` and the `uv`
+environment.
+
+### 2026-08-04 — Runtime version decision
+Q1 resolved and recorded as [ADR-0016](DECISION_LOG.md#adr-0016): Python 3.13,
+pinned exactly, with `requires-python = ">=3.13,<3.14"` and a single-version CI
+job rather than a matrix. The application is deployed as a container with the
+interpreter baked in, so a supported range would add CI time while producing
+signal about a configuration that is never shipped. Adoption of 3.14 is defined
+as a scheduled revalidation — running the statistical suite against the new
+interpreter and comparing to reference values — not a routine bump.
+
+Toolchain installed locally: `uv python install 3.13` (CPython 3.13.13, managed
+by uv, independent of the system 3.14.3) and `uv python pin 3.13`, which writes
+the committed `.python-version`. Corrected a Phase 1 defect in the root
+`.gitignore`, which had been ignoring `.python-version` — that would have made
+the interpreter pin invisible to every other clone.
+**Next:** the toolchain phase, starting with `pyproject.toml` and the `uv`
+environment.
+
+### 2026-08-03 — Phase 2: documentation
+Wrote the full fifteen-document set. Recorded fifteen ADRs covering every
+foundational decision made so far. Established the domain vocabulary in
+`GLOSSARY.md` so that code, configuration, and UI share one set of terms from
+the first line of implementation. Sequencing decision made and recorded: the
+synthetic data generator precedes the analytics engine, so detection can be
+scored rather than eyeballed.
+**Next:** the toolchain phase, starting with `pyproject.toml` and the `uv`
+environment.
+
+### 2026-08-03 — Phase 1: project structure
+Created the 96-directory structure with per-directory documentation.
+Established the hexagonal subdivision under `src/spc_platform/`, the six test
+tiers, and the eight data zones. Verified the ignore policy keeps the skeleton
+while excluding generated artefacts. Initialised the git repository.
+**Next:** Phase 2, the documentation set.
+
+---
+
+**Related:** [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) ·
+[MODULE_DESIGN.md](MODULE_DESIGN.md) ·
+[CHANGELOG.md](../CHANGELOG.md) ·
+[RISK_REGISTER.md](RISK_REGISTER.md) ·
+[DECISION_LOG.md](DECISION_LOG.md)

@@ -1,0 +1,74 @@
+name: Defect report
+description: Something behaves differently from the way it is specified.
+labels: ["defect"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        If a *number* is wrong, use the "Incorrect statistical result" template
+        instead. That path carries obligations this one does not.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened
+      description: >-
+        Name the requirement, standard, or document section the expectation
+        comes from, so the discussion is about evidence rather than opinion.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: >-
+        Steps to reproduce, log excerpts with their correlation ID, screenshots.
+        Redact anything identifying a real product, customer, or tool.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity (QUALITY_ASSURANCE_PLAN.md §7)
+      options:
+        - S1 — incorrect statistical result, or audit data lost
+        - S2 — missed detection or excessive false alarms
+        - S3 — functional defect with a workaround
+        - S4 — cosmetic or documentation
+    validations:
+      required: true
+
+  - type: input
+    id: requirement
+    attributes:
+      label: Affected requirement
+      description: FR-… / NFR-… from docs/PRODUCT_REQUIREMENTS.md, or "unclear".
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: >-
+        How we will know this is fixed. Every fix carries a regression test
+        verified to fail against the old code, so state what that test asserts.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confidentiality
+    attributes:
+      label: Before submitting
+      options:
+        - label: This report contains no real fab data, customer information, or credentials.
+          required: true

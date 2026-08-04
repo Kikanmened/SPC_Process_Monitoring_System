@@ -1,0 +1,13 @@
+# Defaults shared by every environment. Environment overlays change only what
+# genuinely differs — a staging file that redefines everything is a second
+# configuration and will drift.
+name: spc-platform
+timezone: UTC
+
+spc:
+  capability:
+    minimum_n: 25
+    refuse_if_unstable: true
+  baseline:
+    minimum_n: 25
+    exclude_engineering_time: true

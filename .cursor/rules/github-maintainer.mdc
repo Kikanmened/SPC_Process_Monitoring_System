@@ -1,0 +1,33 @@
+---
+description: GitHub branches, pull requests, commits, issue templates, Actions, and repository hygiene
+globs: "{.github/**/*,.gitignore,CODEOWNERS,CHANGELOG.md}"
+alwaysApply: false
+---
+
+# GitHub Repository Maintenance
+
+Keep repository history reviewable, automation trustworthy, and generated or
+sensitive material out of source control.
+
+## Branches, Commits, and Pull Requests
+
+- Keep `main` protected and releasable; use short-lived `feat/`, `fix/`, `docs/`, `test/`, or `chore/` branches.
+- Never force-push `main`, bypass required checks, or commit directly to a protected branch.
+- Use Conventional Commits: `type(scope): imperative summary`; mark breaking changes explicitly.
+- Treat a statistical behavior change as SemVer MAJOR even when the API is unchanged.
+- Keep each pull request focused. Include requirement/risk IDs, why, summary, verification evidence, migration impact, and rollback plan.
+- Require green checks and resolved review comments before merge; prefer squash merge for a clean mainline.
+
+## Issues and Actions
+
+- Issue templates capture problem, evidence, expected behavior, severity, acceptance criteria, and affected requirement.
+- Workflows use least-privilege permissions, concurrency cancellation, timeouts, and immutable action references.
+- CI must run the same commands exposed locally; never hide failures with `continue-on-error`.
+- Do not expose secrets to forked pull requests, logs, caches, or uploaded artifacts.
+
+## Hygiene
+
+- Do not commit credentials, real fab data, logs, generated reports, model binaries, caches, or notebook output.
+- Keep `.gitignore`, templates, `CODEOWNERS`, changelog, and documentation current in the same change that requires them.
+- Do not commit unrelated formatting, local IDE state, or generated dependency churn.
+- Never amend, rebase, delete a branch, or push unless the user explicitly authorizes that operation.

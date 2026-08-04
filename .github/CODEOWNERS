@@ -1,0 +1,38 @@
+# Review ownership.
+#
+# The paths below are the ones where a wrong change is expensive to detect
+# later, so they are listed explicitly rather than left to the default rule.
+# When this repository moves to an organisation, replace the individual handle
+# with the team that holds each obligation — the paths and the reasons for
+# them do not change.
+
+* @Kikanmened
+
+# Statistical behaviour. A change here retroactively alters the meaning of
+# every historical number (QUALITY_ASSURANCE_PLAN.md §6), so review is not
+# optional and the pull request must state the impact on existing baselines.
+/src/spc_platform/analytics/ @Kikanmened
+/tests/statistical/          @Kikanmened
+/docs/validation/            @Kikanmened
+
+# The domain vocabulary, where the SpecificationLimit / ControlLimit
+# separation is enforced by construction.
+/src/spc_platform/domain/ @Kikanmened
+
+# Reference data and control plans are quality records, not settings.
+/data/reference/ @Kikanmened
+/configs/        @Kikanmened
+
+# The gates themselves. Weakening a gate is a change to what "green" means.
+/.github/                @Kikanmened
+/scripts/ci/             @Kikanmened
+/Makefile                @Kikanmened
+/pyproject.toml          @Kikanmened
+/uv.lock                 @Kikanmened
+/.importlinter           @Kikanmened
+/.pre-commit-config.yaml @Kikanmened
+/.gitleaks.toml          @Kikanmened
+
+# Source-of-truth documents and the rules that direct the AI contributor.
+/docs/          @Kikanmened
+/.cursor/rules/ @Kikanmened

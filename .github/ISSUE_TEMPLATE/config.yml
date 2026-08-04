@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Glossary and domain vocabulary
+    url: https://github.com/Kikanmened/SPC_Process_Monitoring_System/blob/main/docs/GLOSSARY.md
+    about: >-
+      Check the canonical term before filing. Code, configuration, UI, and
+      prose use one vocabulary, and a mismatch is usually a naming question
+      rather than a defect.
+  - name: Requirements and scope
+    url: https://github.com/Kikanmened/SPC_Process_Monitoring_System/blob/main/docs/PRODUCT_REQUIREMENTS.md
+    about: >-
+      Confirm whether the behaviour you expected is a requirement, a deliberate
+      non-goal, or a capability still awaiting approval.

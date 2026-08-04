@@ -1,0 +1,8 @@
+process_steps:
+  - step_id: OXIDE_GROW
+    name: Gate oxidation
+    layer: gate
+
+  - step_id: POLY_ETCH
+    name: Poly etch
+    layer: gate

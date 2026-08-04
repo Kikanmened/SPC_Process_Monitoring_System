@@ -1,0 +1,34 @@
+---
+description: Markdown, API and architecture documentation, decisions, READMEs, and technical writing
+globs: "**/*.md"
+alwaysApply: false
+---
+
+# Engineering Documentation
+
+Make documentation precise, retrievable, current, and independently
+verifiable. Prefer one authoritative document with links over duplicated truth.
+
+## Writing
+
+- Lead with purpose and operational consequence; use direct, specific language.
+- Define acronyms on first use and use terms exactly as `docs/GLOSSARY.md` defines them.
+- Use short sections, descriptive headings, relative links, and tables only when they improve comparison.
+- State units, assumptions, limits, owners, status, dates, and evidence where relevant.
+- Distinguish fact, requirement, decision, plan, and example. Do not present an aspiration as implemented behavior.
+- Avoid unsupported claims such as “production-ready,” “compliant,” “real-time,” or “enterprise-grade.”
+
+## Document Types
+
+- API documentation defines contracts, types, units, preconditions, errors, examples, and versioning behavior.
+- Architecture documentation shows boundaries, dependency direction, data flow, runtime sequence, constraints, and trade-offs.
+- ADRs are append-only and record context, decision, rejected alternatives, consequences, and supersession links.
+- READMEs answer purpose, layout, allowed contents, usage, and local rules; keep commands executable.
+- PRDs own product requirements; the roadmap owns sequencing; progress owns current state; the changelog owns history.
+
+## Maintenance
+
+- Update affected documentation and Cursor rules in the same change as behavior.
+- Verify links, anchors, phase numbers, requirement IDs, and cross-document claims after edits.
+- Never reproduce controlled AIAG or SEMI content; cite conceptual alignment and avoid conformance claims.
+- Preserve historical decisions. Mark superseded content and link its replacement rather than rewriting history.

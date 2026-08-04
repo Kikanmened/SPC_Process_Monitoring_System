@@ -1,0 +1,163 @@
+# The gate sequence from QUALITY_ASSURANCE_PLAN.md §3, ordered
+# fastest-failing first per TESTING_STRATEGY.md §9.
+#
+# Every job runs `scripts/ci/gate.sh <gate>` and nothing else. That script is
+# also what `make check` and the pre-commit hooks call, so a green local run
+# and a green CI run mean the same thing.
+#
+# The statistical tier is its own job deliberately. A failure there means a
+# number the platform produces is wrong, and it must be unmistakable in the
+# run summary rather than buried among passing unit tests.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  quality:
+    name: G1–G3 · Format, lint, types, architecture
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh format
+      - run: scripts/ci/gate.sh lint
+      - run: scripts/ci/gate.sh typecheck
+      - run: scripts/ci/gate.sh architecture
+      - run: scripts/ci/gate.sh docs
+
+  unit:
+    name: G4 · Unit tier
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh unit
+
+  statistical:
+    name: G5 · Statistical validation
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh statistical
+
+  contract:
+    name: G6 · Contract tier
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh contract
+
+  integration:
+    name: G7 · Integration tier
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh integration
+
+  e2e:
+    name: G8 · End-to-end tier
+    needs: [contract, integration]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh e2e
+
+  performance:
+    name: G9 · Performance budgets
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh performance
+
+  security:
+    name: G10 · Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Full history: a secret that was committed and later removed is still
+      # disclosed, and a shallow clone cannot see it.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh security
+
+  coverage:
+    name: G11 · Coverage non-regression
+    needs: [unit, statistical]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: ./.github/actions/setup
+      - run: scripts/ci/gate.sh coverage
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  # One check to require on the protected branch. Without it, adding a job
+  # above silently leaves a gate unrequired.
+  gates:
+    name: All gates
+    if: always()
+    needs:
+      - quality
+      - unit
+      - statistical
+      - contract
+      - integration
+      - e2e
+      - performance
+      - security
+      - coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail unless every gate succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          set -euo pipefail
+          echo "Gate results: ${RESULTS}"
+          for result in ${RESULTS}; do
+            if [ "${result}" != "success" ]; then
+              echo "At least one gate did not succeed."
+              exit 1
+            fi
+          done

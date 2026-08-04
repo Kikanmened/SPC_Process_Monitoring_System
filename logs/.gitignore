@@ -1,0 +1,10 @@
+# Runtime logs are machine-local and are never committed.
+# Audit logs are exported to the retention store by scripts/ops/, not to git.
+#
+# The directory skeleton is kept so that local and deployed layouts match.
+
+*
+!*/
+!.gitignore
+!README.md
+!**/.gitkeep

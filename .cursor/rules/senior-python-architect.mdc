@@ -1,0 +1,36 @@
+---
+description: Clean Architecture, SOLID, dependency inversion, modular Python, reuse, patterns, and performance
+globs: "{src,dashboard,scripts}/**/*.py"
+alwaysApply: false
+---
+
+# Senior Python Architecture
+
+Enforce the architecture in `docs/SYSTEM_ARCHITECTURE.md` and the implementation
+rules in `docs/CODING_STANDARDS.md`.
+
+## Dependency Direction
+
+- Dependencies point inward: presentation/infrastructure → application → analytics → domain.
+- Application may also use domain directly; `analytics/` imports only `domain/`, `common/`, and approved numerical libraries.
+- `domain/` imports no other project layer.
+- Application use cases depend on typed ports. Infrastructure implements adapters; it never owns business policy.
+- Dashboard, API, CLI, pipelines, storage, clocks, and logging never enter domain or analytics code.
+
+## Design
+
+- Apply SOLID to reduce coupling, not to manufacture abstractions.
+- Prefer composition, constructor injection, protocols at boundaries, and immutable value objects.
+- Keep functions and modules single-purpose; pure functions are the default in analytics.
+- Use Strategy for interchangeable chart/rule behavior and Repository ports for persistence; justify every other pattern by a current variation point.
+- Do not create a base class, service locator, global registry, or “utils” dumping ground.
+- Reuse validated domain behavior; do not duplicate formulas or consolidate unrelated code behind a vague abstraction.
+
+## Python and Performance
+
+- Use Python 3.13, complete type annotations, `mypy --strict`, NumPy docstrings, and typed exceptions with context.
+- Avoid module-level side effects and mutable global state.
+- Return values; do not mutate caller-owned arrays or collections.
+- Vectorize numerical hot paths. Profile before optimizing and preserve reference tests through every optimization.
+- Keep pandas/PyArrow at pipeline boundaries; analytics receives typed NumPy arrays and returns typed results.
+- Fail explicitly when a required input is absent; never add a plausible fallback.

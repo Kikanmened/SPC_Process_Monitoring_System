@@ -1,0 +1,26 @@
+tools:
+  - tool_id: OX-01
+    step_id: OXIDE_GROW
+    name: Oxidation furnace 01
+    is_metrology: false
+    chambers:
+      - chamber_id: OX-01-A
+        name: Tube A
+      - chamber_id: OX-01-B
+        name: Tube B
+
+  - tool_id: ET-01
+    step_id: POLY_ETCH
+    name: Poly etcher 01
+    is_metrology: false
+    chambers:
+      - chamber_id: ET-01-A
+        name: Chamber A
+      - chamber_id: ET-01-B
+        name: Chamber B
+
+  - tool_id: MET-ELLIP-01
+    step_id: OXIDE_GROW
+    name: Ellipsometer 01
+    is_metrology: true
+    chambers: []

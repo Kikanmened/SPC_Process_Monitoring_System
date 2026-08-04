@@ -1,0 +1,18 @@
+# Binary model artefacts and experiment output are not committed.
+#
+# Committed:   registry/ (manifests), cards/ (model cards), evaluation/ (reports)
+# Not committed: artifacts/ (serialised weights), experiments/ (run output),
+#                baselines/ (frozen numeric baselines are stored as artefacts)
+#
+# A model is reproducible from its registry manifest plus the pipeline that
+# produced it. The binary itself is an output, not a source.
+
+artifacts/**
+experiments/**
+baselines/**
+
+!**/.gitkeep
+!**/README.md
+!registry/**
+!cards/**
+!evaluation/**

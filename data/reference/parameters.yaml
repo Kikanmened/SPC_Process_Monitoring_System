@@ -1,0 +1,28 @@
+# Parameter registry. Adding a controlled parameter is an engineering decision.
+parameters:
+  - parameter_id: OXIDE_THK
+    name: Gate oxide thickness
+    unit: nm
+    metrology_method: ellipsometry
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Gate oxidation film thickness
+
+  - parameter_id: POLY_CD
+    name: Poly critical dimension
+    unit: nm
+    metrology_method: cd-sem
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 5
+    description: Gate poly CD
+
+  - parameter_id: PARTICLE_COUNT
+    name: Surface particle count
+    unit: count
+    metrology_method: laser-scattering
+    chart_type: c
+    subgrouping: wafer_mean
+    sampling_sites: 1
+    description: Particles ≥ 0.2 µm per wafer

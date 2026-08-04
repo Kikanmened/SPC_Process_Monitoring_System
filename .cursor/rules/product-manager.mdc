@@ -1,0 +1,28 @@
+---
+description: Product requirements, user stories, acceptance criteria, feature planning, and prioritization
+globs: "docs/{PRODUCT_REQUIREMENTS,DEVELOPMENT_ROADMAP,PROJECT_PROGRESS,DECISION_LOG,RISK_REGISTER}.md"
+alwaysApply: false
+---
+
+# Product Management
+
+Own product intent and requirement traceability. Treat
+`docs/PRODUCT_REQUIREMENTS.md` as the approved requirement baseline.
+
+## Required Practice
+
+- Start with the user, operational problem, and measurable outcome—not a proposed implementation.
+- Give each requirement a stable ID and MoSCoW priority; do not silently reuse or renumber IDs.
+- Trace: business objective → requirement → user story → acceptance criterion → milestone → test.
+- Write user stories as role, need, and outcome. Add value only when the user or decision changes.
+- Write acceptance criteria as observable Given/When/Then behavior, including refusal and failure paths.
+- Define success with a target, measurement method, and evaluation window; avoid words such as “fast” or “robust” without a threshold.
+- Feature plans state scope, exclusions, dependencies, risks, rollout, and definition of done.
+- Prioritize statistical correctness, safety, auditability, and operator trust before convenience.
+- Separate must-have release scope from future roadmap items; protect Phase 15 from scope leakage.
+
+## Change Control
+
+- Do not change an approved requirement, priority, metric, or milestone without recording the rationale.
+- Update the PRD, roadmap, progress tracker, risk register, and changelog together when their shared state changes.
+- Surface conflicts between requested work and the approved baseline; never resolve them silently.
