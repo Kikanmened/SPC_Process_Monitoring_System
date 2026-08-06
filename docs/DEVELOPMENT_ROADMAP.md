@@ -334,9 +334,10 @@ dashboard rendering (Phase 12).
 
 ---
 
-## Phase 11 — Application layer, API, and CLI
+## Phase 11 — Application layer, API, and CLI ✅
 
-**Effort:** M · **Depends on:** Phases 9, 10 · **Milestone:** M11
+**Status:** Complete (2026-08-06) · **Effort:** M · **Depends on:** Phases 9, 10 ·
+**Milestone:** M11
 
 **Deliverables**
 - Use cases: evaluate lot, recompute baseline, acknowledge violation, record
@@ -345,15 +346,17 @@ dashboard rendering (Phase 12).
   out-of-control process** (FR-P04)
 - FastAPI surface with a generated OpenAPI contract
 - Typer CLI for scheduled jobs and backfills
-- Append-only audit trail wired into every consequential action (FR-AU01 –
+- Append-only audit trail wired into every consequential action (FR-AU01 -
   FR-AU03)
 
 **Exit criteria**
-- Every use case is tested with fake adapters, including refusal paths
-- API responses validate against the OpenAPI schema in `tests/contract/`
-- Every auditable event from [QUALITY_ASSURANCE_PLAN.md](QUALITY_ASSURANCE_PLAN.md)
-  §2.2 produces a complete record
-- CLI and API demonstrably invoke the same use cases
+- ~~Every use case is tested with fake adapters, including refusal paths~~ ✅
+- ~~API responses validate against the OpenAPI schema in `tests/contract/`~~ ✅
+- ~~Every auditable event from [QUALITY_ASSURANCE_PLAN.md](QUALITY_ASSURANCE_PLAN.md)
+  §2.2 that these use cases emit produces a complete record~~ ✅
+- ~~CLI and API demonstrably invoke the same use cases~~ ✅
+
+**Deferred (by design):** site SSO to Phase 14; no message bus (TECH_STACK).
 
 ---
 

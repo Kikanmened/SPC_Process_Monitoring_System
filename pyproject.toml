@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spc-platform"
-version = "0.10.0"
+version = "0.11.0"
 description = "Statistical process control monitoring platform for semiconductor wafer fabrication"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
@@ -37,6 +37,7 @@ dependencies = [
   # Application interfaces — TECH_STACK.md §6
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
+  "httpx2>=2.9",
   "typer>=0.12",
   "streamlit>=1.38",
   "plotly>=5.24",
@@ -48,9 +49,8 @@ dependencies = [
   "apscheduler>=3.10",
 ]
 
-# The `spc` console entry point is declared in Phase 11, with the CLI that
-# backs it. A script pointing at a module that does not exist is a broken
-# promise the packaging metadata cannot catch.
+[project.scripts]
+spc = "spc_platform.cli:run"
 
 [dependency-groups]
 dev = [
@@ -69,6 +69,7 @@ dev = [
   # Stubs, so that an untyped import is never resolved with a blanket ignore.
   # Further stub packages are added as each library's first import lands.
   "types-pyyaml>=6.0",
+  "types-jsonschema>=4.23",
   "pandas-stubs>=2.2",
   "scipy-stubs>=1.14",
 ]

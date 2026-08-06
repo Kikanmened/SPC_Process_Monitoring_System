@@ -17,12 +17,12 @@ release history see [CHANGELOG.md](../CHANGELOG.md).
 
 | | |
 |---|---|
-| **Current phase** | Phase 11 — Application layer, API, and CLI |
-| **Phases complete** | 10 of 15 |
-| **Application code** | Domain, configuration, generator, analytics, pipelines, and persistence ports; use cases and API not yet built |
-| **Repository** | Initialised, `main`, no remote configured, no commits yet |
-| **Last milestone** | M10 — pipelines and persistence (2026-08-06) |
-| **Next milestone** | M11 — application use cases, API, and CLI |
+| **Current phase** | Phase 12 — Dashboard |
+| **Phases complete** | 11 of 15 |
+| **Application code** | Domain through pipelines, seven application use cases, FastAPI, and Typer CLI |
+| **Repository** | Initialised; see git remotes for hosting |
+| **Last milestone** | M11 — application use cases, API, and CLI (2026-08-06) |
+| **Next milestone** | M12 — Streamlit dashboard |
 
 ```
 Phase  1 ████████████ Structure              complete
@@ -35,8 +35,8 @@ Phase  7 ████████████ Domain model           complete
 Phase  8 ████████████ Data generator         complete
 Phase  9 ████████████ Analytics engine       complete
 Phase 10 ████████████ Pipelines + storage    complete
-Phase 11 ░░░░░░░░░░░░ Application + API      next
-Phase 12 ░░░░░░░░░░░░ Dashboard
+Phase 11 ████████████ Application + API      complete
+Phase 12 ░░░░░░░░░░░░ Dashboard              next
 Phase 13 ░░░░░░░░░░░░ Reporting + audit
 Phase 14 ░░░░░░░░░░░░ Deployment
 Phase 15 ░░░░░░░░░░░░ Advanced analytics (stretch)
@@ -332,6 +332,26 @@ Alembic round-trip run when `SPC_TEST_DATABASE_URL` is set.
 **Exit criteria met.** Application use cases and detector registries are
 deliberately deferred (Phase 11; proposed FR-AD01 – FR-AD04).
 
+### Phase 11 — Application layer, API, and CLI · 2026-08-06
+
+Seven use cases share one code path for FastAPI and the Typer CLI. Capability
+reports refuse out-of-control windows (FR-P04). Append-only audit covers the
+QA §2.2 events these use cases emit.
+
+- Ports: `AuditSink`, `Authorisation`, violation / disposition / specification
+  repositories; local fake + JSONL file audit adapters
+- Use cases under `application/use_cases/`; composition via
+  `infrastructure/composition/`
+- FastAPI under `api/` with `X-Actor-Id` (SSO deferred to Phase 14)
+- Typer CLI with console script `spc`
+- Contract OpenAPI validation; e2e API ≡ CLI for `evaluate_lot`
+
+**Verified:** fake-adapter unit tests including FR-P04 refusal and audit abort;
+OpenAPI contract tests; append-only file integration; e2e evaluate_lot and
+capability refusal.
+
+**Exit criteria met.** No message bus. Site SSO remains Phase 14.
+
 ## 3. Decisions settled
 
 Twenty-two architecture decisions are recorded in
@@ -353,7 +373,7 @@ that follows:
 
 ## 4. Open questions
 
-Tracked here until they become decisions. None currently blocks Phase 10.
+Tracked here until they become decisions. None currently blocks Phase 12.
 
 | # | Question | Needed by | Notes |
 |---|---|---|---|
@@ -366,7 +386,7 @@ All questions raised during Phase 2 are now resolved. Phase 5 raised one:
 
 | # | Question | Needed by | Notes |
 |---|---|---|---|
-| Q5 | Are the twenty proposed requirements from module design approved, and does the PRD get amended to include them? | Phase 11 | FR-K01 – FR-K06, FR-AD01 – FR-AD04, FR-RC01 – FR-RC04, FR-CC01 – FR-CC06. Modules 5, 6, 7, and 8 are specified but partly unbuildable until this is settled ([MODULE_DESIGN.md](MODULE_DESIGN.md) §5) |
+| Q5 | Are the twenty proposed requirements from module design approved, and does the PRD get amended to include them? | Phase 15 / Modules 5–8 | FR-K01 – FR-K06, FR-AD01 – FR-AD04, FR-RC01 – FR-RC04, FR-CC01 – FR-CC06. Modules 5, 6, 7, and 8 are specified but partly unbuildable until this is settled ([MODULE_DESIGN.md](MODULE_DESIGN.md) §5) |
 
 New questions are added here as they arise.
 
@@ -378,21 +398,20 @@ Full register in [RISK_REGISTER.md](RISK_REGISTER.md). Requiring attention now:
 |---|---|---|
 | R-20 | AI fabrication of statistical constants | The statistical tier now has hundreds of reference-backed cases and derived constants checked against Montgomery Appendix VI. The remaining gap is mechanical enforcement that every new constant carries a citation — still a review criterion. |
 | R-12 | Documentation drift | Growing code against living docs. The link gate catches broken references; stale claims still need a human. Phase 9 figures in the validation scorecard were taken from the seeded tests, not invented. |
-| R-04 | Rational subgrouping error | Phase 8 made the mistake visible; Phase 9 charts take an explicit subgroup matrix or an individuals series at the call site, so the wrong level has to be chosen deliberately. Whether the Phase 11 use cases choose correctly is still unproven. |
+| R-04 | Rational subgrouping error | Phase 11 `evaluate_lot` charts individuals from site-grain series against the active baseline; wrong grain remains a configuration risk if a future use case aggregates without an explicit strategy. |
 | R-10 | Scope expansion | Phase 15 is deliberately gated, and Phase 5 recorded twenty proposed requirements rather than absorbing them. Approving them all would expand the release scope materially (Q5). |
 
 ## 6. Next actions
 
-Phase 11, in order:
+Phase 12, in order:
 
-1. Application use cases: evaluate lot, recompute baseline, acknowledge
-   violation, disposition, capability report, gauge study, wafer map
-2. Policy refusals, especially capability on an unstable process (FR-P04)
-3. FastAPI surface with OpenAPI contract tests; Typer CLI for jobs
-4. Append-only audit trail on every consequential action
+1. Streamlit line overview ordered by attention
+2. Control chart viewer with violation markers (Plotly)
+3. Capability screen stating estimator, n, and window
+4. Wafer map rendering over the `get_wafer_map` DTO (ADR-0018)
 
-**Phase 11 exit check:** every use case tested with fake adapters including
-refusal paths; API and CLI invoke the same use cases.
+**Phase 12 exit check:** dashboard screens call application use cases only;
+spec versus control limits remain visually distinct.
 
 ## 7. Metrics
 
@@ -400,14 +419,14 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 | Metric | Current | Target |
 |---|---|---|
-| Phases complete | 10 / 15 | 15 |
+| Phases complete | 11 / 15 | 15 |
 | Cursor rules | 7 | 7 |
 | Documentation files | 30 | — |
 | Identified requirements | 74 FR + 43 NFR | Traced to tests |
 | Proposed requirements awaiting approval | 20 | Approved or rejected (Q5) |
 | Modules specified | 10 / 10 | 10 |
-| Modules with code landed | 6 / 10 (1 ingest, 2 preprocess, 3 SPC, 4 capability/MSA, 6 spatial/scoring, 10 utilities) | 10 |
-| Tests | 830+ across six tiers (Postgres cases skipped without URL) | — |
+| Modules with code landed | 6 / 10 (1 ingest, 2 preprocess, 3 SPC, 4 capability/MSA, 6 spatial/scoring, 10 utilities + audit/auth ports) | 10 |
+| Tests | 850+ across six tiers (Postgres cases skipped without URL) | — |
 | Statistical checks on the default dataset | 153 passed, 3 characteristics unchecked | Every characteristic checked |
 | Reference-validated statistical cases | Full analytics suite (constants, charts, rules, capability, MSA, ARL, detection power, spatial) | Maintained |
 | Type coverage | 100% under `mypy --strict` | 100% |
@@ -419,6 +438,20 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 Newest first. One entry per working session, recording what changed and what
 the next session should pick up.
+
+### 2026-08-06 — Phase 11: Application layer, API, and CLI
+
+Closed the application boundary. Seven use cases call analytics through
+ports; FastAPI and Typer share that path. Capability refuses unstable
+windows (FR-P04) with an audited `report_refused` event. Audit is append-only
+(fake + JSONL). Actor identity is `X-Actor-Id` / `--actor` only — SSO waits
+for Phase 14. No message queue.
+
+**Verified:** unit, contract, integration, and e2e coverage for use cases,
+OpenAPI shapes, audit append-only behaviour, and API ≡ CLI evaluate_lot.
+`make check` green after docs and version bump to 0.11.0.
+
+**Next:** Phase 12 — Streamlit dashboard over these use cases.
 
 ### 2026-08-06 — Phase 10: Data pipelines and persistence
 

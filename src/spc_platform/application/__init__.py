@@ -1,8 +1,8 @@
 """Application layer: use cases and the ports they depend on.
 
-Use cases arrive in Phase 11. Ports that the pipelines and those use cases
-share are defined here so adapters in ``infrastructure/`` have a stable
-contract to satisfy.
+Use cases are the only path API and CLI take into analytics and persistence.
+Ports here stay free of concrete adapters (import-linter
+``application-uses-ports``).
 """
 
 from spc_platform.application.ports.baseline_store import BaselineStore

@@ -4,7 +4,7 @@
 **Depends on:** nothing in this repository beyond `domain/`
 **Depended on by:** all nine other modules
 **Requirement coverage:** FR-CF01 – FR-CF05, FR-AU01 – FR-AU06, FR-D08 (unit registry), FR-RP02 (provenance); NFR-M04, NFR-SE03, NFR-SE04, NFR-SE05, NFR-SE07, NFR-CO01
-**Delivered in:** Phase 7 (configuration, units, time, errors), Phase 11 (audit trail) · **Status:** Partial — Phase 7 delivered; audit trail deferred to Phase 11
+**Delivered in:** Phase 7 (configuration, units, time, errors), Phase 11 (audit trail) · **Status:** Partial — Phase 7 plus audit/auth ports; full RBAC and SSO remain later
 
 ---
 

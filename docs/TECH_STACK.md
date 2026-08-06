@@ -2,7 +2,7 @@
 
 **Document owner:** Project lead
 **Status:** Active — installed; runtime dependencies in use from Phase 7
-**Last updated:** 2026-08-03
+**Last updated:** 2026-08-06
 
 Every entry states what was chosen, what it replaces, and why. A stack
 document that lists tools without recording the alternatives rejected is a
@@ -104,6 +104,7 @@ run.
 | Dashboard | **Streamlit** | Dash, Panel, React + FastAPI | Fastest path from analysis to a usable engineering interface, in a language process engineers can read and extend. The cost — less layout control, session-state constraints — is acceptable for an internal tool and is contained behind the `dashboard/` boundary. Dash offers finer control at meaningfully higher build cost; a React front end is unjustifiable for this audience. |
 | Charting | **Plotly** | Matplotlib, Altair, Bokeh | Interactive zoom, pan, and hover are essential on a control chart — an engineer must be able to inspect an individual point and reach its lot and wafer. Matplotlib is retained for static report figures, where deterministic rendering matters more than interaction. |
 | API | **FastAPI** | Flask, Django REST | Pydantic-native, async-capable, generates an OpenAPI contract automatically — which is what `tests/contract/` validates against. |
+| HTTP test client | **httpx2** | httpx 0.x | Required by Starlette's `TestClient` on the pinned FastAPI/Starlette stack; contract and e2e API tests use it. |
 | CLI | **Typer** | argparse, Click | Type-hint driven, so the CLI signature and the function signature cannot drift apart. |
 | Reports | **Jinja2 + WeasyPrint** | Quarto, ReportLab, LaTeX | HTML templates that render deterministically to PDF, with figures from Matplotlib. Reviewable in a browser during development; identical output in a report. |
 

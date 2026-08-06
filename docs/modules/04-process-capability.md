@@ -4,7 +4,7 @@
 **Depends on:** Modules 2, 3, 10
 **Depended on by:** Modules 5, 8, 9
 **Requirement coverage:** FR-P01 – FR-P09, FR-M01 – FR-M06; NFR-U04, NFR-C01
-**Delivered in:** Phase 9 (analytics), Phase 11 (use cases) · **Status:** Analytics implemented; use cases pending
+**Delivered in:** Phase 9 (analytics), Phase 11 (use cases) · **Status:** Analytics and capability / MSA / wafer-map use cases implemented
 
 ---
 

@@ -21,10 +21,37 @@ invalidated.
 
 ## [Unreleased]
 
-### Planned — Phase 11: Application layer, API, and CLI
-- Use cases over the measurement and baseline ports
-- FastAPI + Typer composition roots
-- Append-only audit trail
+### Planned — Phase 12: Dashboard
+- Streamlit control-chart and wafer-map surfaces over the Phase 11 use cases
+
+---
+
+## [0.11.0] — 2026-08-06
+
+**Phase 11 — Application layer, API, and CLI.** Seven use cases share one
+path for FastAPI and Typer; capability refuses out-of-control windows
+(FR-P04); append-only audit covers QA §2.2 events the use cases emit.
+
+### Added
+
+- Application ports: `AuditSink`, `Authorisation`, violation / disposition /
+  specification repositories
+- Use cases: `evaluate_lot`, `recompute_baseline`, `acknowledge_violation`,
+  `record_disposition`, `generate_capability_report`, `run_gauge_study`,
+  `get_wafer_map`
+- `infrastructure/audit/` — in-memory fake and append-only JSONL file store
+- `infrastructure/composition/` — local fake wiring for API and CLI
+- FastAPI app under `api/` with `X-Actor-Id` actor injection (no SSO)
+- Typer CLI with console script `spc`
+- Contract tests for OpenAPI responses and audit record shape; e2e that API
+  and CLI agree on `evaluate_lot`
+
+### Notes
+
+- Site SSO / LDAP remains deferred to Phase 14; role checks are a thin
+  `Authorisation` port with permit/deny fakes.
+- Message queues stay out of scope (TECH_STACK rejects Kafka).
+- `httpx2` is required for Starlette's TestClient on the pinned stack.
 
 ---
 
