@@ -1,0 +1,51 @@
+# Named run-rule sets selectable per parameter from a control plan (FR-R03).
+#
+# Rule identities must match analytics/rules/catalogue.py. Adding a rule that
+# is not in the catalogue is a configuration error at evaluation time, not a
+# silent no-op — an unpublished rule has no measured ARL₀ (FR-R06).
+
+rule_sets:
+  western-electric:
+    description: >
+      Western Electric rules 1–4. Combined in-control ARL ≈ 91.75
+      (Champ and Woodall 1987; Montgomery 2019 §5.3.3).
+    rules:
+      - rule_id: WE-1
+        severity: critical
+      - rule_id: WE-2
+        severity: warning
+      - rule_id: WE-3
+        severity: warning
+      - rule_id: WE-4
+        severity: warning
+
+  nelson:
+    description: >
+      Nelson's eight tests. More sensitive and more false-alarm-prone than
+      Western Electric alone; activate only with a measured ARL₀ in hand.
+    rules:
+      - rule_id: NELSON-1
+        severity: critical
+      - rule_id: NELSON-2
+        severity: warning
+      - rule_id: NELSON-3
+        severity: warning
+      - rule_id: NELSON-4
+        severity: warning
+      - rule_id: NELSON-5
+        severity: warning
+      - rule_id: NELSON-6
+        severity: info
+      - rule_id: NELSON-7
+        severity: info
+      - rule_id: NELSON-8
+        severity: warning
+
+  shewhart-only:
+    description: >
+      Single three-sigma rule. In-control ARL ≈ 370.4. The reference set for
+      ARL comparisons and for parameters that cannot tolerate Western Electric's
+      higher false-alarm rate.
+    rules:
+      - rule_id: WE-1
+        severity: critical

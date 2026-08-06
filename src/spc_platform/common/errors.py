@@ -67,9 +67,49 @@ class DegenerateSeriesError(SPCPlatformError):
     """A series that makes a statistic undefined (e.g. zero range)."""
 
 
+class UnsupportedChartError(SPCPlatformError):
+    """The configured chart type does not apply to this parameter's data."""
+
+
 class AuditWriteError(SPCPlatformError):
     """The audit record could not be written; the action must not proceed."""
 
 
 class UnauthorisedActionError(SPCPlatformError):
     """The actor's role does not permit the requested action."""
+
+
+class SimulationConfigError(SPCPlatformError):
+    """Generator configuration is internally inconsistent, or disagrees with reference data."""
+
+
+class GroundTruthError(SPCPlatformError):
+    """A dataset and the manifest describing its injected faults do not correspond."""
+
+
+class InsufficientSitesError(SPCPlatformError):
+    """Too few measurement sites for a spatial classification to be meaningful."""
+
+
+class DuplicateMeasurementKeyError(SPCPlatformError):
+    """The declared measurement key is not unique within a batch."""
+
+
+class SourceUnavailableError(SPCPlatformError):
+    """A measurement source adapter cannot reach or read its source."""
+
+
+class UnitConversionError(SPCPlatformError):
+    """No declared conversion exists between the source and target units."""
+
+
+class AmbiguousRemeasurementError(SPCPlatformError):
+    """Two records claim the same key with no resolvable ordering."""
+
+
+class SubgroupingError(SPCPlatformError):
+    """The declared subgrouping strategy cannot be applied to the series."""
+
+
+class PipelinePublishError(SPCPlatformError):
+    """A pipeline stage could not publish atomically to its destination zone."""

@@ -92,6 +92,27 @@ security: ## G10 — bandit, pip-audit, gitleaks
 coverage: ## G11 — coverage non-regression in domain/ and analytics/
 	@$(GATE) coverage
 
+# --- Synthetic data --------------------------------------------------------
+#
+# Not gates. The generator is an instrument (ADR-0021): CI builds a dataset when
+# a test asks for one, and these targets exist so an engineer can build and
+# inspect the same dataset by hand. Pass extra arguments with ARGS=, for
+# example: make dataset ARGS="--lots 60 --format csv".
+
+DATASET_DIR := data/synthetic/fab-12m
+
+.PHONY: dataset
+dataset: ## Generate the default synthetic dataset into data/synthetic/
+	uv run --frozen python scripts/simulation/generate_dataset.py $(ARGS)
+
+.PHONY: dataset-check
+dataset-check: ## Validate a generated dataset against its ground-truth manifest
+	uv run --frozen python scripts/simulation/validate_dataset.py $(DATASET_DIR) $(ARGS)
+
+.PHONY: dataset-bench
+dataset-bench: ## Time the generator and report throughput
+	uv run --frozen python scripts/simulation/benchmark_generator.py $(ARGS)
+
 # --- Convenience -----------------------------------------------------------
 
 .PHONY: fix

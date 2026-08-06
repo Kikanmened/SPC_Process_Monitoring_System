@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spc-platform"
-version = "0.7.0"
+version = "0.10.0"
 description = "Statistical process control monitoring platform for semiconductor wafer fabrication"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
@@ -70,6 +70,7 @@ dev = [
   # Further stub packages are added as each library's first import lands.
   "types-pyyaml>=6.0",
   "pandas-stubs>=2.2",
+  "scipy-stubs>=1.14",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -129,15 +130,21 @@ builtins-allowed-modules = ["types"]
 
 [tool.ruff.lint.per-file-ignores]
 # Tests assert, and a bare expected value in an assertion is the point of the
-# test rather than a magic number. Statistical tests keep D103: the docstring
-# is where the citation and the hand computation live (TESTING_STRATEGY.md §3).
-"tests/unit/**" = ["S101", "D103", "PLR2004"]
-"tests/integration/**" = ["S101", "D103", "PLR2004"]
-"tests/contract/**" = ["S101", "D103", "PLR2004"]
-"tests/e2e/**" = ["S101", "D103", "PLR2004"]
-"tests/performance/**" = ["S101", "D103", "PLR2004"]
+# test rather than a magic number. D102 travels with D103: whether a test sits
+# at module level or inside a class that groups it is an organisational choice,
+# and a rule that demanded prose from one and not the other would be pushing
+# tests out of the classes that make a file readable.
+#
+# Statistical tests keep both: the docstring is where the citation and the hand
+# computation live (TESTING_STRATEGY.md §3).
+"tests/unit/**" = ["S101", "D102", "D103", "PLR2004"]
+"tests/integration/**" = ["S101", "D102", "D103", "PLR2004"]
+"tests/contract/**" = ["S101", "D102", "D103", "PLR2004"]
+"tests/e2e/**" = ["S101", "D102", "D103", "PLR2004"]
+"tests/performance/**" = ["S101", "D102", "D103", "PLR2004"]
 "tests/statistical/**" = ["S101", "PLR2004"]
 "tests/factories/**" = ["D103"]
+"tests/fixtures/**" = ["D103"]
 "tests/conftest.py" = ["D103"]
 # Scripts are operator-facing command-line tools; stdout is their interface.
 "scripts/**" = ["T20", "D103"]
@@ -154,6 +161,17 @@ strict = true
 # `src.spc_platform` and the installed `spc_platform` are visible.
 files = ["src/spc_platform", "tests", "scripts"]
 exclude = ["(?x)(^|/)tests/factories/"]
+# Derive module names from the repository root rather than from the nearest
+# directory without an ``__init__.py``. Without this, every ``conftest.py`` in
+# the tree claims the module name ``conftest`` and mypy stops at the collision;
+# with it they are ``tests.conftest``, ``tests.statistical.simulation.conftest``,
+# and so on, which is also how the tests already import each other.
+#
+# ``src`` is listed first so the package keeps its installed name: mypy takes
+# the longest matching base, and without it every module here would be seen as
+# ``src.spc_platform.*`` and clash with the installed copy.
+mypy_path = ["src", "."]
+explicit_package_bases = true
 plugins = ["pydantic.mypy"]
 warn_unreachable = true
 enable_error_code = [
@@ -164,6 +182,21 @@ enable_error_code = [
 ]
 # No blanket `ignore_missing_imports`. A library without stubs gets a narrowly
 # scoped override here, with a comment naming why no stub package exists.
+
+# PyArrow ships no `py.typed` marker and has no stub package on PyPI; the
+# project tracks https://github.com/apache/arrow/issues/32609. Scoped to the
+# two modules the Parquet writer touches rather than to the whole library.
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.parquet"]
+ignore_missing_imports = true
+
+# statsmodels ships no `py.typed` marker and has no stub package on PyPI; the
+# project tracks https://github.com/statsmodels/statsmodels/issues/8733. Used
+# only in `tests/statistical/` as an independent check on the ANOVA
+# decomposition, never by `src/`, so the override cannot weaken the shipped code.
+[[tool.mypy.overrides]]
+module = ["statsmodels.*"]
+ignore_missing_imports = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

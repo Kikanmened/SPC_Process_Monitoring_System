@@ -39,6 +39,8 @@ Phases 1–5.
 | [ADR-0018](#adr-0018) | Interactive Plotly wafer maps; static images for export only | Accepted | 2026-08-04 |
 | [ADR-0019](#adr-0019) | Modules are capability slices, not packages | Accepted | 2026-08-04 |
 | [ADR-0020](#adr-0020) | One gate script for local and CI | Accepted | 2026-08-04 |
+| [ADR-0021](#adr-0021) | The generator is an instrument, not a dependency | Accepted | 2026-08-04 |
+| [ADR-0022](#adr-0022) | Metrology gauge pools live in generator configuration | Accepted | 2026-08-04 |
 
 ---
 
@@ -802,6 +804,152 @@ Negative: the script is a shell surface that every contributor and the agent
 must treat as authoritative. Gate names are part of the public contract between
 the Makefile and the workflow, and renaming one without updating both callers
 breaks the run — which is still better than silent divergence.
+
+---
+
+<a id="adr-0021"></a>
+
+## ADR-0021 — The generator is an instrument, not a dependency
+
+**Status:** Accepted · 2026-08-04
+
+**Context.** [ADR-0010](#adr-0010) made synthetic data with injected faults the
+primary dataset, which makes the generator the measuring instrument for every
+detection claim the platform makes. Phase 8 had to decide where its code lives
+and what it may reach.
+
+Two questions turned out to be one. The generator needs the fab model, the
+variance structure, spatial signatures, and a fault library — several thousand
+lines of numerical code whose correctness the benchmark rests on, and which
+therefore has to be typed, imported, and tested like everything else rather than
+living in a script. But once it is a package inside the source tree, nothing
+stops it from importing the estimators it is meant to be measuring.
+
+That second possibility is the dangerous one. A generator that composed its
+data using the platform's own analytics would produce a benchmark that confirms
+itself: the same error would appear on both sides and cancel, every score would
+look excellent, and the project's central claim — that detection performance is
+*measured* rather than asserted — would rest on nothing. The failure is silent,
+survives code review, and gets worse the more the two sides are refactored
+together.
+
+**Decision.** The generator is a package at `src/spc_platform/simulation/`,
+with `scripts/simulation/` reduced to argument parsing and printing. Two
+`import-linter` contracts fix its position:
+
+* *Simulation imports no layer of the platform it generates evidence for.* It
+  may use `domain/`, `common/`, and `config/` — the fab's own vocabulary — and
+  nothing else. `analytics/` in particular is unreachable.
+* *No platform code imports the synthetic data generator.* It is a leaf, so a
+  production path can never come to depend on simulated behaviour.
+
+Both directions are enforced in CI rather than left to convention. The
+generator's contact with the platform is the raw-zone table and the ground-truth
+manifest, and a contract test asserts the frame satisfies the ingestion schema
+without either side importing the other.
+
+**Alternatives rejected.**
+
+*A standalone script under `scripts/`.* Where the generator started, and the
+reason it moved. Scripts are not a package: they are not importable from tests
+without path manipulation, they are not covered by the same type-checking
+configuration, and a several-thousand-line numerical model that nothing can
+import is a model nothing can test.
+
+*A separate repository.* Airtight — the import contracts become impossible to
+violate rather than merely enforced. Rejected because the generator has to move
+in step with the reference data and the raw-zone schema, and a version skew
+between two repositories would surface as a mysteriously failing pipeline rather
+than as a failing contract test. The `import-linter` contracts buy most of the
+isolation at none of the coordination cost.
+
+*Convention and code review.* The status quo everywhere this goes wrong. An
+import added under deadline pressure looks reasonable in a diff; the contract
+does not care how reasonable it looked.
+
+**Consequences.**
+
+Positive: the generator is unit-tested, statistically validated, and type-checked
+like production code; the benchmark cannot become self-confirming without a
+contract failing first; and the two-way leaf position means neither side can
+drift into the other by accident.
+
+Negative: some logic is deliberately implemented twice. The statistical
+validators in `simulation/validators.py` compute means, sigmas, and variance
+components that `analytics/` will also compute, and the duplication is the
+point — a validator that called the estimator under test could not detect an
+error in it. The cost is real: two implementations must both be maintained, and
+a change to the variance model has to be reflected in both.
+
+---
+
+**Related:** [ADR-0010](#adr-0010) · [ADR-0004](#adr-0004) ·
+[DATASET_GUIDE.md](DATASET_GUIDE.md) ·
+[TESTING_STRATEGY.md](TESTING_STRATEGY.md) ·
+[SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)
+
+---
+
+<a id="adr-0022"></a>
+
+## ADR-0022 — Metrology gauge pools live in generator configuration
+
+**Status:** Accepted · 2026-08-04
+
+**Context.** Every measurement records the gauge that produced it, because
+gauge-scoped faults are a distinct failure mode: a drifting ellipsometer
+displaces every parameter it measures and leaves the process tools innocent, and
+a platform that cannot separate the two sends an engineer to the wrong machine.
+Assigning a gauge to a measurement therefore requires knowing which gauges can
+perform which metrology method — ellipsometry, CD-SEM, four-point probe, and so
+on.
+
+The domain's `Tool` model has no notion of a metrology *method*. It knows a tool
+is a metrology tool and which process step it primarily serves, and nothing
+finer. So the mapping had to be added somewhere, and `data/reference/tools.yaml`
+was the obvious candidate.
+
+**Decision.** The method-to-gauge mapping is generator configuration
+(`configs/simulation/`), not reference data. `data/reference/` continues to
+describe only what the fab knows about itself; `metrology_pools` in the
+generator configuration says which gauges the simulation may draw from for each
+method.
+
+**Alternatives rejected.**
+
+*Add a `method` field to the `Tool` model.* The tidiest-looking option, and the
+reason it was rejected is what `data/reference/` is for. That directory is the
+fab's own record — the parameters it controls, the equipment it runs, the limits
+it holds itself to — and it is the input a real deployment would replace
+wholesale. Adding a field that exists only because the simulation needs it makes
+the reference data partly about the simulation, and the next reader cannot tell
+which parts a real fab would supply.
+
+*Infer the method from the gauge's identifier.* `MET-ELLIP-01` is an
+ellipsometer, so the prefix could be parsed. Rejected outright: a naming
+convention is not a schema, and the first gauge named outside the pattern would
+be assigned silently to the wrong pool rather than rejected.
+
+*Infer it from the step the gauge serves.* Several methods serve one step and
+several steps share one method, so the mapping is many-to-many in both
+directions and cannot be recovered from either side alone.
+
+**Consequences.**
+
+Positive: `data/reference/` stays replaceable by a real fab's export; the
+simulation's needs are visible in the simulation's configuration; and a gauge
+listed in a pool but absent from the reference data is refused at startup rather
+than producing measurements that name equipment nobody owns.
+
+Negative: adding a gauge means editing two files, and the two can disagree. The
+consistency check in `simulation/topology.py` exists for exactly that and turns
+the disagreement into a startup error, but the duplication itself remains.
+
+---
+
+**Related:** [ADR-0009](#adr-0009) · [ADR-0021](#adr-0021) ·
+[DATASET_GUIDE.md](DATASET_GUIDE.md) ·
+[architecture/repository-structure.md](architecture/repository-structure.md)
 
 ---
 

@@ -4,7 +4,7 @@
 **Depends on:** Modules 2, 10
 **Depended on by:** Modules 4, 6, 7, 8
 **Requirement coverage:** FR-C01 – FR-C09, FR-R01 – FR-R06; NFR-P01, NFR-P07, NFR-C01 – NFR-C05
-**Delivered in:** Phase 9 (analytics), Phase 11 (use case) · **Status:** Design — not implemented
+**Delivered in:** Phase 9 (analytics), Phase 11 (use case) · **Status:** Analytics implemented; use case pending
 
 ---
 

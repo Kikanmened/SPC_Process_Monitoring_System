@@ -1,8 +1,59 @@
+# Route steps for the simulated 300 mm fab (DATASET_GUIDE.md §4.1).
+#
+# Twelve steps spanning diffusion, deposition, lithography, etch, implant, and
+# CMP. The route is deliberately short: it is long enough to exercise every
+# analysis the platform performs and short enough that an engineer can hold the
+# whole of it in mind while reading a chart.
+#
+# Step order is the route order. Nothing depends on the order of this file, but
+# keeping it in route order is what makes the file readable.
 process_steps:
+  # --- Front end of line ---------------------------------------------------
   - step_id: OXIDE_GROW
     name: Gate oxidation
+    layer: gate
+
+  - step_id: POLY_DEP
+    name: Polysilicon deposition
+    layer: gate
+
+  - step_id: GATE_LITHO
+    name: Gate lithography
     layer: gate
 
   - step_id: POLY_ETCH
     name: Poly etch
     layer: gate
+
+  - step_id: SD_IMPLANT
+    name: Source/drain implant
+    layer: source-drain
+
+  - step_id: RTA_ANNEAL
+    name: Rapid thermal anneal
+    layer: source-drain
+
+  # --- Back end of line ----------------------------------------------------
+  - step_id: ILD_DEP
+    name: Interlayer dielectric deposition
+    layer: ild
+
+  - step_id: ILD_CMP
+    name: Interlayer dielectric planarisation
+    layer: ild
+
+  - step_id: CONTACT_LITHO
+    name: Contact lithography
+    layer: contact
+
+  - step_id: CONTACT_ETCH
+    name: Contact etch
+    layer: contact
+
+  - step_id: METAL1_DEP
+    name: Metal 1 deposition
+    layer: metal1
+
+  - step_id: METAL1_CMP
+    name: Metal 1 planarisation
+    layer: metal1

@@ -17,10 +17,11 @@ from spc_platform.common.errors import (
     UnauthorisedActionError,
     UnknownUnitError,
     UnstableProcessError,
+    UnsupportedChartError,
 )
 from spc_platform.common.provenance import Provenance, capture_provenance
 from spc_platform.common.time import Clock, FixedClock, SystemClock, require_aware
-from spc_platform.common.types import FloatArray
+from spc_platform.common.types import FloatArray, FloatMatrix, IntArray
 from spc_platform.common.units import UnitConversion, UnitRegistry, registry_from_declarations
 
 __all__ = [
@@ -30,7 +31,9 @@ __all__ = [
     "DegenerateSeriesError",
     "FixedClock",
     "FloatArray",
+    "FloatMatrix",
     "InsufficientDataError",
+    "IntArray",
     "NaiveDatetimeError",
     "NoActiveBaselineError",
     "Provenance",
@@ -42,6 +45,7 @@ __all__ = [
     "UnitRegistry",
     "UnknownUnitError",
     "UnstableProcessError",
+    "UnsupportedChartError",
     "capture_provenance",
     "registry_from_declarations",
     "require_aware",

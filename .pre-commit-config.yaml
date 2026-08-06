@@ -107,6 +107,9 @@ repos:
 
       - id: conventional-commit
         name: Conventional Commits
-        entry: scripts/ci/check_commit_message.py
+        # Invoke via the interpreter — `language: system` execs the entry as a
+        # binary, which fails with [Errno 8] when the shebang is missing from
+        # the version on disk (e.g. after pre-commit stashes an unstaged fix).
+        entry: python3 scripts/ci/check_commit_message.py
         language: system
         stages: [commit-msg]

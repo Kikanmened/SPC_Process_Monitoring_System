@@ -21,10 +21,150 @@ invalidated.
 
 ## [Unreleased]
 
-### Planned — Phase 8: Synthetic fab data generator
-- Fab model with nested variance structure and systematic spatial signature
-- Ground-truth fault injection with manifests
-- Byte-identical regeneration from config + seed + code revision
+### Planned — Phase 11: Application layer, API, and CLI
+- Use cases over the measurement and baseline ports
+- FastAPI + Typer composition roots
+- Append-only audit trail
+
+---
+
+## [0.10.0] — 2026-08-06
+
+**Phase 10 — Data pipelines and persistence.** Raw exports become
+analysis-ready series with hard-stop validation, quarantine, lineage, and
+storage behind one port (ADR-0008).
+
+### Added
+
+- `pipelines/ingest/` — schema validation, measurement-key uniqueness,
+  quarantine artefacts, content-addressed `data_revision`, run records
+- `pipelines/transform/` — attach context, resolve re-measurements, unit
+  normalisation, atomic processed publish, `build_subgroups` at the series
+  boundary
+- `pipelines/run.py` — raw-to-processed composition helper (no infrastructure
+  imports)
+- `infrastructure/readers/` — CSV/Parquet `MeasurementSource`
+- `infrastructure/repositories/` — Fake, DuckDB, and PostgreSQL adapters for
+  measurements and baselines
+- Alembic initial migration under `migrations/` (PostgreSQL); shared DDL used
+  by DuckDB
+- `scripts/pipelines/run_pipeline.py` — local composition root
+- Contract suite parametrised over Fake + DuckDB (+ PostgreSQL when
+  `SPC_TEST_DATABASE_URL` is set)
+
+### Notes
+
+- Timestamps are persisted as UTC wall time; domain objects remain
+  timezone-aware on read.
+- PostgreSQL contract and Alembic round-trip tests skip without
+  `SPC_TEST_DATABASE_URL` so clone-and-run stays zero-infrastructure.
+
+---
+
+## [0.9.0] — 2026-08-05
+
+**Phase 9 — SPC analytics engine.** The statistical core the platform's
+credibility rests on. Expected values come from NIST/SEMATECH and Montgomery;
+snapshotting current output as an expectation is prohibited.
+
+### Added
+
+- `analytics/estimators/` — derived control-chart constants and named
+  short-term / long-term sigma estimators
+- `analytics/charts/` — I-MR, X̄-R, X̄-S, EWMA, CUSUM, p/np/c/u; Phase I studies
+  separate from Phase II panels (`FixedIndividualsLimits`, FR-C03)
+- `analytics/rules/` — Western Electric and Nelson from vectorised primitives,
+  with measured ARL₀
+- `analytics/capability/` and `analytics/msa/` — Cp/Cpk/Pp/Ppk/Cpm; gauge R&R
+  by ANOVA, bias, linearity, stability, NDC
+- `analytics/variance/` — nested variance decomposition (FR-S07)
+- `analytics/spatial/` — radial / edge / asymmetric / none classification
+  (FR-S02), with none the default and geometric predictors independent of the
+  generator
+- `analytics/scoring/` — detection scorecard against known onsets (test
+  harness; FR-AD01 – FR-AD04 remain proposed)
+- `configs/spc/` chart defaults and named rule sets
+- `docs/validation/detection-performance.md` — published ARL₀, detection
+  power, and spatial recovery figures
+- Statistical tier covering constants, charts, rules, capability, MSA, ARL,
+  detection power, spatial recovery, and scoring-harness integrity
+- Performance budget test: 1 000 points with Nelson's full set under 50 ms
+
+### Notes
+
+- Detector registries, activation gates, and false-alarm characterisation
+  before activation are proposed requirements and are not in this release
+- Application use cases that call the analytics layer arrive in Phase 11
+
+---
+
+## [0.8.0] — 2026-08-04
+
+**Phase 8 — Synthetic fab data generator.** The measurement instrument for
+every detection claim the platform will make.
+
+Nothing here changes statistical behaviour, because there is no analytics yet.
+It does fix the ground truth those analytics will be scored against, so the
+generator's own defects — listed under Fixed — would have shown up later as
+inexplicably good or bad detection scores rather than as failures.
+
+### Added
+
+- `src/spc_platform/simulation/`: generator configuration models, fab topology,
+  nested variance, wafer sampling plans and spatial signatures, fault
+  injection, ground-truth manifests, deterministic writers, and independent
+  statistical validators
+- `data/reference/` expanded to a full fab: 12 process steps, 26 parameters, 27
+  process tools across 80 chambers, 15 gauges, 3 devices on 2 nodes, 45
+  specification limits, 6 control plans charting 44 characteristics
+- Eight fault kinds with ground truth: gradual drift, step shift, variance
+  increase, cyclic, single-tool excursion, spatial signature change, metrology
+  drift, and outliers — all emitted unlabelled
+- `spc_platform/infrastructure/vcs.py` reading the code revision, suffixed
+  `-dirty` when the working tree is modified
+- `scripts/simulation/` entry points and `make dataset`, `make dataset-check`,
+  `make dataset-bench`
+- Two `import-linter` contracts pinning the generator as a two-way leaf
+- ADR-0021 (the generator is an instrument, not a dependency) and ADR-0022
+  (metrology gauge pools live in generator configuration)
+- 188 tests across the unit, statistical, integration, and contract tiers,
+  including a contract test that the generated frame satisfies the raw-zone
+  ingestion schema without either side importing the other
+
+### Fixed
+
+Four generator defects found by the new tests, each of which would have
+corrupted the benchmark silently:
+
+- **Content digest hashed string columns by memory address.** Two byte-identical
+  frames digested differently, making the reproduction guarantee vacuous.
+  Numeric columns are now widened to a canonical dtype and text columns hashed
+  as text, so the digest depends on values and order and on nothing else.
+- **Outlier injection applied each source once per distinct chamber in a
+  block**, with an identical random key each time — multiplying the magnitude by
+  the chamber count and over-counting in the manifest. Now scoped to the rows
+  that ran in the chamber, once each.
+- **Remeasurement re-drew Poisson counts with Gaussian gauge noise**, producing
+  fractional defect counts on remeasured wafers only. Counts are now re-drawn as
+  counts.
+- **The benchmark timed the generator with `tracemalloc` running**, reporting
+  6.6× below the real throughput. The footprint is now measured in a separate,
+  untimed run.
+
+### Changed
+
+- Messiness is applied loss-first, so every count in the manifest describes the
+  dataset delivered rather than an intermediate state — and a result that was
+  never recorded is not one anyone sends back to metrology
+- `MessinessRecord.remeasured_wafers` renamed to `remeasurement_events`: it
+  counts wafer-and-parameter pairs, and one wafer remeasured for two parameters
+  is two events
+- mypy configured with `explicit_package_bases` so the whole tree is checked;
+  the previous configuration stopped at a `conftest.py` name collision and had
+  been silently skipping `src/` for two phases
+- Ruff `D102` exemption aligned with the existing `D103` exemption for test
+  tiers, so grouping tests into a class no longer demands prose that the same
+  test at module level does not
 
 ---
 

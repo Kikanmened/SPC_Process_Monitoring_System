@@ -1,0 +1,321 @@
+# Default synthetic dataset: twelve simulated months of a 300 mm fab.
+#
+# This file plus `seed` fully determines the data (DATASET_GUIDE.md §4.4). It
+# describes the fab's *true* behaviour — the variance structure and the injected
+# faults — which is precisely what the platform is meant to discover and is
+# therefore deliberately separate from `data/reference/`, which holds what the
+# fab knows about itself.
+#
+# Sampling is not configured here. How many wafers each characteristic measures
+# and how often comes from `data/reference/control_plans.yaml`, so a dataset
+# cannot be sampled differently from the plan it is charted against.
+
+dataset_id: fab-12m
+seed: 20260804
+description: >-
+  Twelve simulated months across three devices on two technology nodes, with one
+  fault of each kind in the library and a ground-truth manifest for scoring.
+
+schedule:
+  start_at: "2025-01-06T06:00:00+00:00"
+  lots: 500
+  wafers_per_lot: 25
+  # 500 lots at 1050 minutes apart spans just under 365 days.
+  lot_interval_minutes: 1050
+  step_interval_minutes: 95
+  wafer_interval_seconds: 240
+
+product_mix:
+  - product_id: DEV-A
+    weight: 0.5
+  - product_id: DEV-B
+    weight: 0.3
+  - product_id: DEV-C
+    weight: 0.2
+
+# Which gauges perform which metrology method. This is generator configuration
+# rather than reference data because the domain `Tool` model carries no method
+# (ADR-0022); a gauge is registered against the step it primarily serves.
+metrology_pools:
+  ellipsometry:
+    - MET-ELLIP-01
+    - MET-ELLIP-02
+    - MET-ELLIP-03
+    - MET-ELLIP-04
+  cd-sem:
+    - MET-CDSEM-01
+    - MET-CDSEM-02
+    - MET-CDSEM-03
+  overlay-metrology:
+    - MET-OVL-01
+    - MET-OVL-02
+  four-point-probe:
+    - MET-4PP-01
+    - MET-4PP-02
+  profilometry:
+    - MET-PROF-01
+    - MET-PROF-02
+  laser-scattering:
+    - MET-PART-01
+    - MET-PART-02
+
+# The shape of the variance, shared by every parameter that does not override it.
+#
+# `random_weights` are relative and are rescaled to combine in quadrature to the
+# parameter's total random sigma. `systematic` fractions sit outside that total:
+# tool mismatch and a within-wafer signature widen the long-term spread without
+# widening the short-term spread, which is why Cp and Pp differ on real data and
+# must differ here.
+#
+# The gauge weight puts %GRR near 27% of the random total — marginal by AIAG
+# convention, which is a realistic place for a production gauge to sit and gives
+# the MSA module something to find.
+default_variance:
+  random_weights:
+    lot: 0.55
+    wafer: 0.45
+    site_residual: 0.55
+    gauge: 0.25
+  systematic:
+    tool_offset: 0.45
+    chamber_offset: 0.30
+    slot: 0.18
+    spatial: 0.55
+
+# `target_cp` derives the total random sigma from the specification width, which
+# keeps the fab model self-consistent: a parameter declared at Cp 1.45 should
+# come back from the capability module at about 1.45 within a tool, and lower
+# overall once tool and chamber mismatch are included. Single-sided
+# characteristics have no width to divide, so they declare sigma directly.
+parameters:
+  # --- OXIDE_GROW ----------------------------------------------------------
+  - parameter_id: OXIDE_THK
+    target_cp: 1.45
+    spatial_signature: radial
+
+  - parameter_id: OXIDE_UNIF
+    sigma_total: 0.32
+    spatial_signature: none
+
+  - parameter_id: PARTICLE_COUNT
+    sigma_total: 4.24
+    distribution: poisson
+    spatial_signature: none
+
+  # --- POLY_DEP ------------------------------------------------------------
+  - parameter_id: POLY_THK
+    target_cp: 1.55
+    spatial_signature: radial
+
+  - parameter_id: POLY_SHEET_RS
+    target_cp: 1.35
+    spatial_signature: radial
+
+  # --- GATE_LITHO ----------------------------------------------------------
+  - parameter_id: GATE_CD_ADI
+    target_cp: 1.25
+    spatial_signature: edge
+
+  # Overlay is corrected by a linear model at the scanner, so what survives is
+  # a residual tilt rather than a radial bowl.
+  - parameter_id: OVERLAY_X
+    target_cp: 1.40
+    spatial_signature: asymmetric
+
+  - parameter_id: OVERLAY_Y
+    target_cp: 1.40
+    spatial_signature: asymmetric
+
+  - parameter_id: RESIST_THK
+    target_cp: 1.60
+    spatial_signature: radial
+
+  # --- POLY_ETCH -----------------------------------------------------------
+  - parameter_id: POLY_CD
+    target_cp: 1.20
+    spatial_signature: edge
+
+  - parameter_id: ETCH_DEPTH
+    target_cp: 1.50
+    spatial_signature: radial
+
+  - parameter_id: ETCH_UNIF
+    sigma_total: 0.40
+    spatial_signature: none
+
+  - parameter_id: POLY_CD_UNIF
+    sigma_total: 0.35
+    spatial_signature: none
+
+  # --- SD_IMPLANT ----------------------------------------------------------
+  - parameter_id: IMPLANT_RS
+    target_cp: 1.30
+    spatial_signature: radial
+
+  # --- RTA_ANNEAL ----------------------------------------------------------
+  - parameter_id: ANNEAL_RS
+    target_cp: 1.45
+    spatial_signature: radial
+
+  # --- ILD_DEP -------------------------------------------------------------
+  - parameter_id: ILD_THK
+    target_cp: 1.50
+    spatial_signature: radial
+
+  - parameter_id: ILD_UNIF
+    sigma_total: 0.42
+    spatial_signature: none
+
+  # --- ILD_CMP -------------------------------------------------------------
+  # Polish rate rises towards the wafer edge, so post-CMP thickness carries a
+  # pronounced edge signature rather than the radial one deposition leaves.
+  - parameter_id: ILD_POST_CMP_THK
+    target_cp: 1.20
+    spatial_signature: edge
+    variance:
+      random_weights:
+        lot: 0.55
+        wafer: 0.45
+        site_residual: 0.55
+        gauge: 0.25
+      systematic:
+        tool_offset: 0.45
+        chamber_offset: 0.40
+        slot: 0.18
+        spatial: 0.85
+
+  - parameter_id: ILD_DISHING
+    sigma_total: 2.5
+    spatial_signature: radial
+
+  - parameter_id: CMP_PARTICLE
+    sigma_total: 4.69
+    distribution: poisson
+    spatial_signature: none
+
+  # --- CONTACT_LITHO -------------------------------------------------------
+  - parameter_id: CONTACT_CD_ADI
+    target_cp: 1.30
+    spatial_signature: edge
+
+  # --- CONTACT_ETCH --------------------------------------------------------
+  - parameter_id: CONTACT_CD
+    target_cp: 1.25
+    spatial_signature: edge
+
+  # --- METAL1_DEP ----------------------------------------------------------
+  - parameter_id: METAL1_THK
+    target_cp: 1.45
+    spatial_signature: radial
+
+  - parameter_id: METAL1_SHEET_RS
+    target_cp: 1.40
+    spatial_signature: radial
+
+  # --- METAL1_CMP ----------------------------------------------------------
+  - parameter_id: METAL1_POST_CMP_THK
+    target_cp: 1.25
+    spatial_signature: edge
+    variance:
+      random_weights:
+        lot: 0.55
+        wafer: 0.45
+        site_residual: 0.55
+        gauge: 0.25
+      systematic:
+        tool_offset: 0.45
+        chamber_offset: 0.40
+        slot: 0.18
+        spatial: 0.85
+
+  - parameter_id: METAL1_EROSION
+    sigma_total: 2.0
+    spatial_signature: asymmetric
+
+# One fault of each kind in the library (DATASET_GUIDE.md §4.3). Magnitudes are
+# in units of the affected parameter's total random sigma, so the detection
+# claims in TESTING_STRATEGY.md §3.5 can be checked directly against the
+# manifest these produce.
+#
+# The faults are deliberately spread across parameters. Two faults on one
+# characteristic would make a missed detection ambiguous — was the drift missed,
+# or was it masked by the variance increase? — and ground truth exists to remove
+# exactly that ambiguity.
+faults:
+  - fault_id: F01-POLY-CD-DRIFT
+    kind: gradual_drift
+    parameter_id: POLY_CD
+    product_id: DEV-A
+    onset_fraction: 0.35
+    magnitude_sigma: 2.5
+    note: Etch chamber seasoning; EWMA and CUSUM should see this well before Shewhart.
+
+  - fault_id: F02-OXIDE-THK-STEP
+    kind: step_shift
+    parameter_id: OXIDE_THK
+    product_id: DEV-A
+    onset_fraction: 0.55
+    magnitude_sigma: 1.8
+    note: Furnace maintenance event; Shewhart rule 1 or 4 should catch it quickly.
+
+  - fault_id: F03-ILD-THK-VARIANCE
+    kind: variance_increase
+    parameter_id: ILD_THK
+    product_id: DEV-A
+    onset_fraction: 0.62
+    variance_factor: 2.2
+    note: Degrading gas flow controller; the S chart should signal before the mean chart.
+
+  - fault_id: F04-RESIST-THK-CYCLIC
+    kind: cyclic
+    parameter_id: RESIST_THK
+    product_id: DEV-A
+    onset_fraction: 0.20
+    magnitude_sigma: 1.4
+    period_lots: 30
+    note: Ambient temperature cycle in the track; visible in autocorrelation.
+
+  - fault_id: F05-GATE-CD-TOOL
+    kind: tool_excursion
+    parameter_id: GATE_CD_ADI
+    tool_id: LTH-02
+    onset_fraction: 0.45
+    magnitude_sigma: 2.2
+    note: One scanner out of specification; invisible in pooled data, found by commonality.
+
+  - fault_id: F06-METAL1-CMP-SPATIAL
+    kind: spatial_change
+    parameter_id: METAL1_POST_CMP_THK
+    product_id: DEV-A
+    onset_fraction: 0.70
+    signature: asymmetric
+    magnitude_sigma: 1.8
+    note: Carrier head tilt; the wafer mean does not move, so only a wafer map shows it.
+
+  - fault_id: F07-PROFILOMETER-DRIFT
+    kind: metrology_drift
+    metrology_tool_id: MET-PROF-02
+    onset_fraction: 0.50
+    magnitude_sigma: 1.6
+    note: >-
+      Gauge calibration slip, not a process fault. It reaches every parameter this
+      profilometer measures and no others, which is the signature that separates
+      it from a process excursion. Reporting it as one sends engineers to the
+      wrong tool.
+
+  - fault_id: F08-IMPLANT-RS-OUTLIERS
+    kind: outlier
+    parameter_id: IMPLANT_RS
+    product_id: DEV-A
+    onset_fraction: 0.0
+    rate: 0.002
+    magnitude_sigma: 8.0
+    note: Sensor glitches. Emitted unflagged; deciding whether they matter is the platform's job.
+
+# Realistic messiness. `invalid_record_rate` stays zero here: an out-of-range
+# value is a hard stop at ingest, so a dataset carrying one cannot be loaded at
+# all. The quarantine test raises it deliberately.
+messiness:
+  remeasurement_rate: 0.006
+  missing_rate: 0.002
+  invalid_record_rate: 0.0

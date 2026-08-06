@@ -7,15 +7,23 @@ standard library and Pydantic for value validation
 
 from spc_platform.domain.baseline import Baseline
 from spc_platform.domain.chart_spec import ChartSpec, RuleDefinition, RuleSet
+from spc_platform.domain.charting import (
+    ChartLimits,
+    ChartPanel,
+    ControlChart,
+    PlottedSeries,
+)
 from spc_platform.domain.control_limit import ControlLimit
 from spc_platform.domain.disposition import Disposition
 from spc_platform.domain.enums import (
     BaselineStatus,
+    ChartStatistic,
     ChartType,
     DispositionAction,
     EquipmentState,
     MeasurementStatus,
     SigmaEstimator,
+    SpatialSignature,
     SubgroupingKind,
     ViolationSeverity,
 )
@@ -42,6 +50,7 @@ from spc_platform.domain.ids import (
     UnitSymbol,
     WaferId,
 )
+from spc_platform.domain.lineage import IngestionRunRecord
 from spc_platform.domain.material import Lot, Site, Wafer
 from spc_platform.domain.measurement import Measurement
 from spc_platform.domain.measurement_series import MeasurementSeries
@@ -57,10 +66,14 @@ __all__ = [
     "BaselineStatus",
     "Chamber",
     "ChamberId",
+    "ChartLimits",
+    "ChartPanel",
     "ChartSpec",
+    "ChartStatistic",
     "ChartType",
     "CodeRevision",
     "ConfigRevision",
+    "ControlChart",
     "ControlLimit",
     "DataRevision",
     "Disposition",
@@ -68,6 +81,7 @@ __all__ = [
     "DomainError",
     "DomainInvariantError",
     "EquipmentState",
+    "IngestionRunRecord",
     "Lot",
     "LotId",
     "Measurement",
@@ -78,6 +92,7 @@ __all__ = [
     "OcapId",
     "Parameter",
     "ParameterId",
+    "PlottedSeries",
     "ProcessStep",
     "ProductId",
     "Recipe",
@@ -88,6 +103,7 @@ __all__ = [
     "SigmaEstimator",
     "Site",
     "SiteId",
+    "SpatialSignature",
     "SpecificationLimit",
     "StepId",
     "Subgroup",

@@ -135,23 +135,44 @@ error.
 
 ## 4. The synthetic fab generator
 
-`scripts/simulation/` produces data for a fictional 300 mm fab. The
-configuration lives alongside the generator so a dataset is fully described by
-a config file plus a seed.
+The generator produces data for a fictional 300 mm fab. It lives at
+`src/spc_platform/simulation/` as an ordinary package — typed, imported, and
+tested like the rest of the source — while `scripts/simulation/` holds only the
+operator entry points. It imports nothing from `analytics/`, and nothing in the
+platform imports it; both directions are `import-linter` contracts rather than
+conventions, for the reasons in [ADR-0021](DECISION_LOG.md#adr-0021).
+
+A dataset is fully described by a configuration file plus a seed.
 
 ### 4.1 Simulated scope
 
 A deliberately small but representative slice — enough to exercise every
-analysis type, small enough to comprehend:
+analysis type, small enough to comprehend. The figures below are what
+`data/reference/` and `configs/simulation/default.yaml` currently describe:
 
 | Element | Scope |
 |---|---|
-| Process steps | ~12 across lithography, etch, deposition, CMP, implant, diffusion |
-| Parameters | ~25 (CD, film thickness, overlay x/y, sheet resistance, etch depth, particle count, uniformity) |
-| Tools | 2–4 parallel tools per step, 2–6 chambers each |
+| Process steps | 12 across lithography, etch, deposition, CMP, implant, diffusion |
+| Parameters | 26 (CD, film thickness, overlay x/y, sheet resistance, etch depth, particle count, uniformity) |
+| Process tools | 27 — two or three per step — across 80 chambers |
+| Metrology | 15 gauges in six method pools ([ADR-0022](DECISION_LOG.md#adr-0022)) |
 | Products | 3 devices on 2 technology nodes |
-| Volume | Configurable; default ~500 lots over 12 simulated months |
+| Control plans | 6 plans charting 44 characteristics against 45 specification limits |
+| Volume | Configurable; default 500 lots of 25 wafers over 12 simulated months, about 226,000 measurements |
 | Sampling | Per-parameter plans: 5, 9, or 13 sites; every lot or every Nth lot |
+
+### 4.1.1 Running it
+
+```bash
+make dataset                          # generate into data/synthetic/
+make dataset-check                    # validate against the ground-truth manifest
+make dataset-bench                    # throughput and peak memory
+make dataset ARGS="--lots 60 --format csv"
+```
+
+The default run takes a few seconds and sustains roughly 125,000 measurements
+per second. The scripts are thin: everything they do is available as two library
+calls, `generate_dataset` and `write_dataset`.
 
 ### 4.2 Variance structure
 
@@ -187,10 +208,19 @@ against the σ²_gauge the generator was told to use.
 persistent bias, and detecting it requires comparison across tools rather than
 detection within one time series.
 
+A fourth property is worth stating because it is easy to get wrong in the
+implementation rather than in the design: **the variance fractions apply to the
+variance, not to sigma.** A fault that doubles the variance multiplies sigma by
+√2, and the configured lot, wafer, site, and gauge weights combine in
+quadrature to the parameter's total. A generator that treated them as sigma
+fractions would produce a total spread larger than the one it recorded, and
+every capability number checked against the manifest would be quietly wrong.
+
 ### 4.3 Injected faults
 
 Each carries a manifest recording type, affected entity, onset point, and
-magnitude — the ground truth for scoring.
+magnitude — the ground truth for scoring. The default configuration injects
+eight, one of each kind below.
 
 | Fault | Physical analogue | Detection expectation |
 |---|---|---|
@@ -207,12 +237,47 @@ The metrology drift case is included deliberately. A platform that reports
 gauge drift as a process excursion sends engineers to the wrong tool, and
 separating the two is a competency the project intends to demonstrate.
 
-### 4.4 Reproducibility
+Faults are injected as *unlabelled* data. Nothing in the measurement table marks
+a point as drifted, excursive, or extreme; the only record of what was done is
+the manifest, which the platform under test does not read. A dataset that
+arrived with the answers in it would score itself.
 
-Every dataset is defined by **generator config + seed + code revision**, all
-recorded in a manifest written alongside the data. The same three inputs
-reproduce the dataset byte-for-byte. Generated data is never committed;
-regenerating it is a single command.
+### 4.4 The ground-truth manifest
+
+`manifest.json` sits beside the measurements and records everything needed to
+interpret, score, and reproduce the dataset:
+
+| Contents | Why it is there |
+|---|---|
+| The full generator configuration, embedded | A manifest that named a config *file* would record where the truth used to be; an edit to that file would leave the dataset undescribed. |
+| Seed, config revision, code revision, dataset revision | The identifiers a result is traced back to (FR-RP02). A code revision reads `-dirty` when the working tree was modified, because a result produced from uncommitted code is not reproducible from any commit. |
+| Content digest | A hash of the column values in raw-zone order. Independent of file format and compression, so a Parquet and a CSV copy of one dataset digest identically. |
+| Every fault: kind, scope, onset lot and instant, magnitude in sigma and in the parameter's own unit | The scoring target. Absolute magnitude is filled only for a fault scoped to one parameter and one product, because sigma differs by product. |
+| Component scales per characteristic | What each sigma actually resolved to, so a recovered variance component can be compared with the configured one. |
+| Each tool's and chamber's fixed offset | Ground truth for commonality analysis. The *spread* of the offsets is not enough: a platform that named the wrong tool would still match the spread exactly. |
+| Realised messiness counts | Rates are configured; counts are observed. A test can then assert on what the dataset holds rather than on what it was asked to hold. |
+
+### 4.5 Reproducibility and self-validation
+
+Every dataset is defined by **generator config + seed + code revision**. The
+same three inputs reproduce it exactly, and the integration tier asserts this
+through the storage boundary rather than in memory — a generator can be
+perfectly deterministic and still lose the property to a float that does not
+survive CSV. Generated data is never committed; regenerating it is one command.
+
+The generator also ships its own statistical validators
+(`simulation/validators.py`), which check a written dataset against its manifest:
+that each characteristic sits at its configured level, carries its configured
+within-wafer sigma and spatial amplitude, reproduces its spatial signature, and
+that each tool shows the bias recorded for it. `make dataset-check` runs them.
+
+Two properties of that report are deliberate. It **names what it could not
+check** — a characteristic carrying a fault has no clean quantity to compare,
+and one with too few wafers cannot support an estimate — because a report that
+passed silently in either case would claim coverage it does not have. And each
+check is **gated on its own power**: a check whose tolerance exceeds the
+quantity it is checking passes whatever the data says, and is skipped rather
+than counted.
 
 ## 5. Data quality handling
 
@@ -231,6 +296,13 @@ Rules for the messiness the generator deliberately reproduces:
 The last row is the one most commonly got wrong in analytics pipelines.
 Automatic outlier removal is standard practice in many data science contexts
 and is actively harmful here: it deletes exactly the signal being monitored.
+
+The table describes what the *pipeline* must do. The generator does the
+opposite, and the asymmetry is intentional: it emits outliers as ordinary
+`valid` measurements and writes missing measurements as absent rows rather than
+nulls. Flagging at generation would hand the platform the answer to the question
+it exists to answer, and a null invites imputation of a point that was never
+measured.
 
 ## 6. Lineage and reproducibility
 

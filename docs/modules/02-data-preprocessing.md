@@ -4,7 +4,7 @@
 **Depends on:** Modules 1, 10
 **Depended on by:** Modules 3, 4, 6
 **Requirement coverage:** FR-D05 – FR-D08, FR-C04; NFR-R04, NFR-CO02
-**Delivered in:** Phase 10 · **Status:** Design — not implemented
+**Delivered in:** Phase 10 · **Status:** Implemented
 
 ---
 

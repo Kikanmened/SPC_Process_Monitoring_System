@@ -4,7 +4,7 @@
 **Depends on:** Modules 2, 3, 10
 **Depended on by:** Modules 5, 7, 9
 **Requirement coverage:** FR-S02; FR-R05, FR-D07 (flag semantics). **Proposed and not approved:** FR-AD01 – FR-AD04
-**Delivered in:** Phase 8 (scoring inputs), Phase 9 (detectors and harness) · **Status:** Design — partially proposed scope
+**Delivered in:** Phase 8 (scoring inputs), Phase 9 (spatial + scoring harness) · **Status:** Spatial and scorecard implemented; detector registry proposed (FR-AD01 – FR-AD04)
 
 ---
 

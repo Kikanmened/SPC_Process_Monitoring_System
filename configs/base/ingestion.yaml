@@ -1,0 +1,17 @@
+# Ingestion boundary configuration (Module 1).
+#
+# The measurement key is the business identity of one site measurement. A
+# duplicate within a batch fails the run (FR-D10) — de-duplication would hide
+# an export defect.
+
+measurement_key:
+  - lot_id
+  - wafer_id
+  - site_id
+  - parameter_id
+  - timestamp
+  - metrology_tool_id
+
+quarantine_directory: data/archive/quarantine
+interim_directory: data/interim
+processed_directory: data/processed

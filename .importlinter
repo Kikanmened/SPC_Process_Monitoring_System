@@ -191,6 +191,56 @@ forbidden_modules =
     dashboard
 
 ; ---------------------------------------------------------------------------
+; Simulation is an instrument, not a dependency — ADR-0021
+; ---------------------------------------------------------------------------
+;
+; The synthetic generator exists to be measured against, so the two directions
+; are forbidden for different reasons.
+;
+; Outward: if the generator imported the analytics it produces evidence for,
+; the benchmark would confirm itself. A detector and the data proving it works
+; would share the estimator, the edge cases, and any error in either.
+;
+; Inward: if the platform imported the generator, synthetic behaviour would
+; reach production, and a fab would be running on code written to fake a fab.
+
+[importlinter:contract:simulation-cannot-see-what-it-benchmarks]
+name = Simulation imports no layer of the platform it generates evidence for
+type = forbidden
+source_modules =
+    spc_platform.simulation
+forbidden_modules =
+    spc_platform.analytics
+    spc_platform.application
+    spc_platform.infrastructure
+    spc_platform.api
+    spc_platform.cli
+    spc_platform.observability
+    dashboard
+
+[importlinter:contract:simulation-is-a-leaf]
+name = No platform code imports the synthetic data generator
+type = forbidden
+source_modules =
+    spc_platform.domain
+    spc_platform.common
+    spc_platform.config
+    spc_platform.analytics
+    spc_platform.application
+    spc_platform.infrastructure
+    spc_platform.pipelines
+    spc_platform.api
+    spc_platform.cli
+    spc_platform.observability
+forbidden_modules =
+    spc_platform.simulation
+
+; `dashboard` is absent from the sources above only because import-linter
+; requires a source module to exist. The presentation layer is covered by
+; `presentation-is-a-leaf`, which already forbids it from being imported, and
+; a dashboard that imported the generator would be caught there in reverse.
+
+; ---------------------------------------------------------------------------
 ; Module dependency graph — MODULE_DESIGN.md §3, as it lands in analytics
 ; ---------------------------------------------------------------------------
 ;

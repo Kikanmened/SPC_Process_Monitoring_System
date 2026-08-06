@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Enforce Conventional Commits on the message being written.
 
 CODING_STANDARDS.md §11 marks this [ENFORCED]. The reason it is worth

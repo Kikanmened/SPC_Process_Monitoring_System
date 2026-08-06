@@ -217,77 +217,102 @@ The vocabulary of the fab as types, and the typed configuration system.
 
 ---
 
-## Phase 8 — Synthetic fab data generator
+## Phase 8 — Synthetic fab data generator ✅
 
-**Effort:** L · **Depends on:** Phase 7 · **Milestone:** M8
+**Status:** Complete (2026-08-04) · **Effort:** L · **Depends on:** Phase 7 ·
+**Milestone:** M8
 
 The measurement instrument for everything that follows.
 
-**Deliverables**
-- Fab model: ~12 steps, ~25 parameters, 2–4 tools per step with multiple
-  chambers, 3 products
+**Delivered**
+- Fab model: 12 steps, 26 parameters, 27 process tools across 80 chambers, 15
+  gauges, 3 products, 6 control plans charting 44 characteristics
 - Nested variance structure per [DATASET_GUIDE.md](DATASET_GUIDE.md) §4.2 —
   lot, tool offset, chamber offset, slot effect, **systematic spatial
   signature**, wafer effect, separate gauge error
 - Injected faults with ground-truth manifests: drift, step shift, variance
   increase, cyclic, single-tool excursion, spatial change, metrology drift,
-  outliers
-- Realistic messiness: re-measurements, missing points, occasional bad records
-- Deterministic reproduction from config + seed + code revision
+  outliers — eight in the default configuration, all unlabelled in the data
+- Realistic messiness: re-measurements retaining both records, missing points
+  written as absent rows rather than nulls, optional bad records
+- Deterministic reproduction from config + seed + code revision, verified
+  through the storage boundary in Parquet and CSV
+- Independent statistical validators that report what they could *not* check,
+  and skip any check whose tolerance exceeds the quantity it is checking
+- `src/spc_platform/simulation/` as a package with thin operator scripts, held
+  in place by two `import-linter` contracts
+  ([ADR-0021](DECISION_LOG.md#adr-0021))
 
-**Exit criteria**
-- Generated distributions match configured parameters within statistical
-  tolerance
-- The spatial signature is demonstrably systematic, not noise
-- Variance decomposition of generated data recovers the configured components
-- A dataset regenerates byte-identically from its manifest
+**Exit criteria met**
+- 153 statistical checks pass on the default 500-lot dataset; every quantity the
+  manifest declares is realised within tolerance
+- The spatial signature reproduces across wafers at correlation > 0.95, and
+  removing it is caught — it is systematic, not noise
+- Variance decomposition recovers lot, within-wafer, spatial, and per-tool
+  components; between-tool variance is positive wherever tool mismatch is
+  configured
+- A dataset regenerates with an identical content digest, and the digest
+  survives a round trip through both storage formats
+- Every injected fault is shown present in the data with the declared
+  magnitude, onset, and scope
 
-**Why this is Large:** getting the variance structure physically plausible is
+**Throughput:** about 125,000 measurements per second; the default 226,000-row
+dataset builds in roughly two seconds at 153 MiB peak.
+
+**Why this was Large:** getting the variance structure physically plausible was
 the hard part, and it determines whether every later benchmark is honest. A
 generator emitting independent Gaussian noise would make detection trivial and
 the scores meaningless (R-30).
 
 ---
 
-## Phase 9 — SPC analytics engine
+## Phase 9 — SPC analytics engine ✅
 
-**Effort:** XL · **Depends on:** Phases 7, 8 · **Milestone:** M9
+**Status:** Complete (2026-08-05) · **Effort:** XL · **Depends on:** Phases 7, 8 ·
+**Milestone:** M9
 
 The core of the project, and the part on which its credibility rests.
 
-**Deliverables**
-- Charts: I-MR, X̄-R, X̄-S, EWMA, CUSUM, p, np, c, u (FR-C01)
-- Run rules: Western Electric and Nelson, composable and configurable (FR-R01,
-  FR-R02)
-- Capability: Cp, Cpk, Pp, Ppk, Cpm; short- and long-term sigma; non-normal
-  handling (FR-P01 – FR-P08)
-- MSA: Gauge R&R by ANOVA, bias, linearity, stability, NDC, with acceptance
-  judgement (FR-M01 – FR-M04)
+**Delivered**
+- Charts: I-MR, X̄-R, X̄-S, EWMA, CUSUM, p, np, c, u — Phase I studies and
+  Phase II panels with fixed limits (FR-C01, FR-C03)
+- Run rules: Western Electric and Nelson, composed from vectorised primitives,
+  with measured ARL₀ (FR-R01 – FR-R06)
+- Capability: Cp, Cpk, Pp, Ppk, Cpm; short- and long-term sigma named on every
+  result; non-normal handling (FR-P01 – FR-P08)
+- MSA: Gauge R&R by ANOVA, bias, linearity, stability, NDC, with configured
+  acceptance bands (FR-M01 – FR-M04)
 - Nested variance decomposition (FR-S07)
-- Spatial signature detection: radial, edge, asymmetry (FR-S02)
-- Estimator constants (d₂, c₄, A₂, D₃, D₄) with citations
-- **The full statistical test tier** per [TESTING_STRATEGY.md](TESTING_STRATEGY.md) §3
+- Spatial signature classification: radial, edge, asymmetric, or **none**,
+  with none as the default (FR-S02)
+- Estimator constants (d₂, c₄, A₂, D₃, D₄, …) derived from their integral
+  definitions and checked against Montgomery Appendix VI
+- Detection scorecard harness scored against known onsets
+  ([TESTING_STRATEGY.md](TESTING_STRATEGY.md) §3.5);
+  `docs/validation/detection-performance.md` publishes the numbers
+- `configs/spc/` chart defaults and named rule sets
 
-**Exit criteria**
-- Every reference case from NIST/SEMATECH and Montgomery passes
-- Analytical invariants hold under Hypothesis (Cp ≥ Cpk; scale/shift
-  equivariance; EWMA λ=1 ≡ individuals)
-- Measured ARL₀ within ±15% of theory for each configured rule set
-- Detection rate ≥ 95% for injected shifts ≥ 1.5σ, with false-alarm rate
-  within the configured ARL₀
-- Performance budget met: 1 000 points with full rule set in < 50 ms (NFR-P01)
-- `analytics/` imports nothing but `domain/`, `common/`, NumPy, SciPy,
-  statsmodels
+**Exit criteria met**
+- Reference cases from NIST/SEMATECH and Montgomery pass in
+  `tests/statistical/analytics/`
+- Measured ARL₀ within ±15% of theory for Shewhart alone and Western Electric
+- Detection rate 100% at 1.5σ and at 3σ across 200 seeded trials; localisation
+  99% within ±3 points at 3σ
+- 1 000 points with Nelson's full rule set under the 50 ms budget (NFR-P01)
+- `analytics/` imports only `domain/`, `common/`, and the approved numerical
+  stack; the module-graph contract holds over the new `spatial/` and
+  `scoring/` packages
 
-**Recommended order within the phase:** estimator constants → I-MR → run rules
-→ X̄-R/X̄-S → capability → EWMA/CUSUM → attribute charts → MSA → variance →
-spatial. Each step is validated against references before the next begins.
+**Not in this phase (and not claimed):** detector registries and activation
+gates (FR-AD01 – FR-AD04, proposed); application use cases (Phase 11);
+dashboard rendering (Phase 12).
 
 ---
 
-## Phase 10 — Data pipelines and persistence
+## Phase 10 — Data pipelines and persistence ✅
 
 **Effort:** L · **Depends on:** Phases 7, 8 · **Milestone:** M10
+**Completed:** 2026-08-06
 
 **Deliverables**
 - Pipeline stages: ingest → validate → normalise units → resolve
@@ -300,11 +325,12 @@ spatial. Each step is validated against references before the next begins.
 - Baseline store: versioned, immutable, with supersession (FR-CF04, FR-AU04)
 
 **Exit criteria**
-- The same contract test suite passes against DuckDB, PostgreSQL, and the
-  in-memory fake
-- A malformed record fails the run and is quarantined — never silently coerced
-- Every processed row carries a resolvable `data_revision`
-- Migrations apply forward and roll back cleanly
+- ~~The same contract test suite passes against DuckDB, PostgreSQL, and the
+  in-memory fake~~ ✅ (PostgreSQL when `SPC_TEST_DATABASE_URL` is set)
+- ~~A malformed record fails the run and is quarantined — never silently coerced~~ ✅
+- ~~Every processed row carries a resolvable `data_revision`~~ ✅
+- ~~Migrations apply forward and roll back cleanly~~ ✅ (PostgreSQL when URL set;
+  revision unit-tested without a server)
 
 ---
 
@@ -358,7 +384,7 @@ spatial. Each step is validated against references before the next begins.
   perceptually uniform scales; a `tests/performance/` case pins the ~5 000
   marker budget, and exceeding it degrades to an aggregated view that says so
 - The same `WaferMapView` renders both the interactive figure and the static
-  report export, verified by a test asserting they describe identical data
+  report export, verified by a test asserting they describe identical data 
 
 ---
 

@@ -1,5 +1,5 @@
-"""Infrastructure layer: adapters implementing application-defined ports.
+"""Adapters: readers, repositories, and other I/O implementations.
 
-The only place a database driver, HTTP client, or file format library appears
-(SYSTEM_ARCHITECTURE.md §2, rule 4).
+Composition roots (CLI, API, scripts) wire these to application ports.
+``pipelines/`` never imports this package.
 """

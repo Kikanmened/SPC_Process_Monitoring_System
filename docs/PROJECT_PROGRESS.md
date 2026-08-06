@@ -2,7 +2,7 @@
 
 **Document owner:** Project lead
 **Status:** Living document — updated at the close of every working session
-**Last updated:** 2026-08-04
+**Last updated:** 2026-08-06
 
 The current state of the project in one place. This is the document to read
 first when resuming work after a break, and the one the AI agent should consult
@@ -17,12 +17,12 @@ release history see [CHANGELOG.md](../CHANGELOG.md).
 
 | | |
 |---|---|
-| **Current phase** | Phase 8 — Synthetic fab data generator |
-| **Phases complete** | 7 of 15 |
-| **Application code** | Domain vocabulary, typed configuration, reference data, and zone schemas; no analytics yet |
+| **Current phase** | Phase 11 — Application layer, API, and CLI |
+| **Phases complete** | 10 of 15 |
+| **Application code** | Domain, configuration, generator, analytics, pipelines, and persistence ports; use cases and API not yet built |
 | **Repository** | Initialised, `main`, no remote configured, no commits yet |
-| **Last milestone** | M7 — domain model and typed configuration (2026-08-04) |
-| **Next milestone** | M8 — generator producing scoreable data |
+| **Last milestone** | M10 — pipelines and persistence (2026-08-06) |
+| **Next milestone** | M11 — application use cases, API, and CLI |
 
 ```
 Phase  1 ████████████ Structure              complete
@@ -32,10 +32,10 @@ Phase  4 ████████████ Cursor rules           complete
 Phase  5 ████████████ Module design          complete
 Phase  6 ████████████ Toolchain + CI         complete
 Phase  7 ████████████ Domain model           complete
-Phase  8 ░░░░░░░░░░░░ Data generator         next
-Phase  9 ░░░░░░░░░░░░ Analytics engine
-Phase 10 ░░░░░░░░░░░░ Pipelines + storage
-Phase 11 ░░░░░░░░░░░░ Application + API
+Phase  8 ████████████ Data generator         complete
+Phase  9 ████████████ Analytics engine       complete
+Phase 10 ████████████ Pipelines + storage    complete
+Phase 11 ░░░░░░░░░░░░ Application + API      next
 Phase 12 ░░░░░░░░░░░░ Dashboard
 Phase 13 ░░░░░░░░░░░░ Reporting + audit
 Phase 14 ░░░░░░░░░░░░ Deployment
@@ -225,9 +225,116 @@ ControlLimit cannot be built from a specification payload (and the reverse);
 `domain/` imports nothing from this repository (`import-linter` green); unknown
 configuration keys raise. `make check` passes with 64 unit tests.
 
+### Phase 8 — Synthetic fab data generator · 2026-08-04
+
+The measurement instrument for every detection claim the platform will make.
+
+- `data/reference/` expanded to a full fab: 12 process steps, 26 parameters, 27
+  process tools across 80 chambers, 15 gauges, 3 devices on 2 nodes, 45
+  specification limits, and 6 control plans charting 44 characteristics
+- `src/spc_platform/simulation/` — configuration models, fab topology, nested
+  variance, wafer sampling plans and spatial signatures, fault injection,
+  ground-truth manifests, deterministic writers, and independent statistical
+  validators
+- Eight injected faults with a manifest recording kind, scope, onset lot and
+  instant, and magnitude in both sigma and the parameter's own unit
+- `spc_platform/infrastructure/vcs.py` reading the code revision, marking it
+  `-dirty` when the working tree is modified
+- Thin operator scripts and `make dataset`, `dataset-check`, `dataset-bench`
+
+**Design note:** the generator is an instrument, not a dependency
+([ADR-0021](DECISION_LOG.md#adr-0021)). Two `import-linter` contracts stop it
+reaching `analytics/` and stop the platform reaching it. Without the first, the
+benchmark would confirm itself — the same error on both sides would cancel and
+every score would look excellent. That is why `simulation/validators.py`
+deliberately re-implements statistics `analytics/` will also compute.
+
+**Verified against ground truth, not against itself.** 153 statistical checks
+pass on the default 500-lot dataset. Each injected fault is separately shown
+present in the data with its declared magnitude, onset, and scope: the cyclic
+fault's period is recovered by a least-squares sinusoid fit over the lot numbers
+the points actually carry, the tool excursion is shown to move its own tool and
+not the fleet, and the metrology drift is shown to follow its gauge across
+unrelated parameters. A dataset regenerates with an identical content digest,
+and the digest survives a round trip through both Parquet and CSV.
+
+**Four defects the tests caught, each of which would have corrupted the
+benchmark silently:**
+
+- The content digest hashed string columns by *memory address*, so two
+  identical frames digested differently and the reproduction guarantee was
+  vacuous.
+- Outlier injection applied each source once per distinct chamber in a block,
+  with the same random key each time — multiplying the magnitude by the chamber
+  count and over-counting in the manifest.
+- Remeasurement re-drew Poisson counts with Gaussian gauge noise, producing
+  20.4 defects on remeasured wafers only.
+- The benchmark script timed the generator with `tracemalloc` running, reporting
+  a throughput 6.6× below the real one.
+
+**Known limitation:** three characteristics in the default dataset are reported
+as unchecked rather than passed — they carry the faults, and a faulted
+characteristic has no clean quantity to compare. The report names them rather
+than counting them as coverage.
+
+**Exit criteria met:** distributions match the configured parameters within
+tolerance; the spatial signature reproduces across wafers at correlation > 0.95;
+variance decomposition recovers the configured components; a dataset regenerates
+byte-identically. `make check` passes with 252 tests and 12 `import-linter`
+contracts.
+
+### Phase 9 — SPC analytics engine · 2026-08-05
+
+The statistical core the rest of the platform is scored on.
+
+- `analytics/estimators/` — control-chart constants derived from their integral
+  definitions (Tippett, gamma ratios), checked against Montgomery Appendix VI;
+  short-term and long-term sigma estimators that carry their method identity
+- `analytics/charts/` — I-MR, X̄-R, X̄-S, EWMA, CUSUM, p/np/c/u; Phase I studies
+  separate from Phase II panels with fixed limits (FR-C03)
+- `analytics/rules/` — Western Electric and Nelson from shared vectorised
+  primitives; measured ARL₀ within ±15% of theory
+- `analytics/capability/` and `analytics/msa/` — Cp/Cpk/Pp/Ppk/Cpm with named
+  estimators; gauge R&R by ANOVA, bias, linearity, stability
+- `analytics/variance/` — nested variance decomposition (FR-S07)
+- `analytics/spatial/` — radial / edge / asymmetric / **none**, with none the
+  default; geometric predictors that do not share code with the generator
+  (ADR-0021, FR-S02)
+- `analytics/scoring/` — detection scorecard against known onsets (test harness;
+  FR-AD01 – FR-AD04 remain proposed and unimplemented)
+- `configs/spc/` chart defaults and named rule sets;
+  `docs/validation/detection-performance.md` publishes the measured figures
+
+**Verified against references and ground truth, not against itself.** Detection
+rate 100% at 1.5σ and at 3σ across 200 seeded trials; localisation 99% within
+±3 points at 3σ; Shewhart ARL₀ ≈ 370 and Western Electric ARL₀ ≈ 91.75 within
+tolerance; 1 000 points with Nelson's full set under the 50 ms budget.
+
+### Phase 10 — Data pipelines and persistence · 2026-08-06
+
+Raw exports become analysis-ready series with hard-stop validation and one
+repository port for Fake, DuckDB, and PostgreSQL (ADR-0008).
+
+- `pipelines/ingest/` — Pandera raw validation, measurement-key uniqueness,
+  quarantine on failure, content-addressed `data_revision`, run records
+- `pipelines/transform/` — context check, re-measurement supersession, unit
+  normalisation, atomic processed publish; `build_subgroups` at the series
+  boundary (site grain preserved in the processed zone)
+- `infrastructure/readers/` and `infrastructure/repositories/` — file source;
+  Fake / DuckDB / PostgreSQL measurement and baseline stores
+- Alembic initial schema under `migrations/`; shared DDL for DuckDB
+- `scripts/pipelines/run_pipeline.py` — local composition root
+
+**Verified:** quarantine leaves interim untouched; processed rows carry
+`data_revision`; Fake and DuckDB pass the contract suite; PostgreSQL and
+Alembic round-trip run when `SPC_TEST_DATABASE_URL` is set.
+
+**Exit criteria met.** Application use cases and detector registries are
+deliberately deferred (Phase 11; proposed FR-AD01 – FR-AD04).
+
 ## 3. Decisions settled
 
-Twenty architecture decisions are recorded in
+Twenty-two architecture decisions are recorded in
 [DECISION_LOG.md](DECISION_LOG.md). The five that most constrain everything
 that follows:
 
@@ -246,12 +353,12 @@ that follows:
 
 ## 4. Open questions
 
-Tracked here until they become decisions. None currently blocks Phase 8.
+Tracked here until they become decisions. None currently blocks Phase 10.
 
 | # | Question | Needed by | Notes |
 |---|---|---|---|
 | ~~Q1~~ | ~~Confirm the Python version pin~~ | — | **Resolved 2026-08-04.** Python 3.13, pinned exactly, single supported version. [ADR-0016](DECISION_LOG.md#adr-0016) |
-| Q2 | Does the local demo profile need PostgreSQL parity, or is DuckDB alone sufficient for review? | Phase 10 | Leaning DuckDB-only; contract tests cover both dialects |
+| ~~Q2~~ | ~~Does the local demo profile need PostgreSQL parity, or is DuckDB alone sufficient for review?~~ | — | **Resolved 2026-08-06.** DuckDB-only for clone-and-run; the same contract suite covers Fake + DuckDB always and PostgreSQL when `SPC_TEST_DATABASE_URL` is set. |
 | ~~Q3~~ | ~~Which reference datasets to standardise on for the statistical tier~~ | — | **Resolved 2026-08-04.** NIST/SEMATECH and Montgomery only for numerical expectations; AIAG for quality alignment, SEMI for domain conventions. [ADR-0017](DECISION_LOG.md#adr-0017) |
 | ~~Q4~~ | ~~Wafer map rendering approach in Streamlit~~ | — | **Resolved 2026-08-04.** Interactive Plotly primary, static images for export only. [ADR-0018](DECISION_LOG.md#adr-0018) |
 
@@ -269,25 +376,23 @@ Full register in [RISK_REGISTER.md](RISK_REGISTER.md). Requiring attention now:
 
 | ID | Risk | Why it is live |
 |---|---|---|
-| R-20 | AI fabrication of statistical constants | Phase 4 added the behavioural controls and Phase 6 added the harness — a separately reported statistical tier and a ban on snapshotting. The citation requirement itself is still a review criterion, not a mechanical check, and it stays that way until Phase 9 gives it something to check. |
-| R-12 | Documentation drift | Twenty-eight documents exist against a package skeleton. Phase 6 made internal links and anchors a CI gate, which catches broken references but not stale claims. Divergence begins in earnest as Phase 7 lands real types. |
-| R-04 | Rational subgrouping error | Must be designed into the Phase 8 generator, or the Phase 9 benchmark cannot detect the mistake. Module 2 now carries the design constraint and its regression test. |
+| R-20 | AI fabrication of statistical constants | The statistical tier now has hundreds of reference-backed cases and derived constants checked against Montgomery Appendix VI. The remaining gap is mechanical enforcement that every new constant carries a citation — still a review criterion. |
+| R-12 | Documentation drift | Growing code against living docs. The link gate catches broken references; stale claims still need a human. Phase 9 figures in the validation scorecard were taken from the seeded tests, not invented. |
+| R-04 | Rational subgrouping error | Phase 8 made the mistake visible; Phase 9 charts take an explicit subgroup matrix or an individuals series at the call site, so the wrong level has to be chosen deliberately. Whether the Phase 11 use cases choose correctly is still unproven. |
 | R-10 | Scope expansion | Phase 15 is deliberately gated, and Phase 5 recorded twenty proposed requirements rather than absorbing them. Approving them all would expand the release scope materially (Q5). |
 
 ## 6. Next actions
 
-Phase 8, in order:
+Phase 11, in order:
 
-1. Fab model configuration (~12 steps, ~25 parameters, parallel tools/chambers)
-2. Nested variance generator per [DATASET_GUIDE.md](DATASET_GUIDE.md) §4.2
-3. Ground-truth fault injection with manifests
-4. Deterministic reproduction from config + seed + code revision
-5. Exit checks: variance decomposition recovers configured components; spatial
-   signature is systematic; datasets regenerate byte-identically
+1. Application use cases: evaluate lot, recompute baseline, acknowledge
+   violation, disposition, capability report, gauge study, wafer map
+2. Policy refusals, especially capability on an unstable process (FR-P04)
+3. FastAPI surface with OpenAPI contract tests; Typer CLI for jobs
+4. Append-only audit trail on every consequential action
 
-**Phase 8 exit check:** generated distributions match configured parameters
-within statistical tolerance; variance decomposition recovers the configured
-components; a dataset regenerates byte-identically from its manifest.
+**Phase 11 exit check:** every use case tested with fake adapters including
+refusal paths; API and CLI invoke the same use cases.
 
 ## 7. Metrics
 
@@ -295,24 +400,108 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 | Metric | Current | Target |
 |---|---|---|
-| Phases complete | 7 / 15 | 15 |
+| Phases complete | 10 / 15 | 15 |
 | Cursor rules | 7 | 7 |
-| Documentation files | 29 | — |
+| Documentation files | 30 | — |
 | Identified requirements | 74 FR + 43 NFR | Traced to tests |
 | Proposed requirements awaiting approval | 20 | Approved or rejected (Q5) |
 | Modules specified | 10 / 10 | 10 |
-| Modules with code landed | 2 / 10 (partial: 10 utilities, schemas for 1–2) | 10 |
-| Unit tests | 64 | — |
-| Reference-validated statistical cases | 0 | Full reference set |
+| Modules with code landed | 6 / 10 (1 ingest, 2 preprocess, 3 SPC, 4 capability/MSA, 6 spatial/scoring, 10 utilities) | 10 |
+| Tests | 830+ across six tiers (Postgres cases skipped without URL) | — |
+| Statistical checks on the default dataset | 153 passed, 3 characteristics unchecked | Every characteristic checked |
+| Reference-validated statistical cases | Full analytics suite (constants, charts, rules, capability, MSA, ARL, detection power, spatial) | Maintained |
 | Type coverage | 100% under `mypy --strict` | 100% |
 | Architecture violations | 0 | 0 |
-| Detection rate (shifts ≥ 1.5σ) | n/a | ≥ 95% |
-| Measured ARL₀ deviation from theory | n/a | within ±15% |
+| Detection rate (shifts ≥ 1.5σ) | 100% on 200 seeded trials | ≥ 95% |
+| Measured ARL₀ deviation from theory | within ±15% (WE and Shewhart) | within ±15% |
 
 ## 8. Session log
 
 Newest first. One entry per working session, recording what changed and what
 the next session should pick up.
+
+### 2026-08-06 — Phase 10: Data pipelines and persistence
+
+Closed the path from a raw export to a queryable processed series. Ingest
+validates hard, quarantines on failure, and stamps a content-addressed
+`data_revision`. Transform resolves re-measurements without deleting rows,
+normalises units only through the declared registry, and publishes atomically
+to Parquet plus the measurement repository. Subgrouping stays at the series
+boundary so the processed zone keeps site grain.
+
+Fake, DuckDB, and PostgreSQL implement the same ports; contract tests always
+run Fake and DuckDB, and PostgreSQL when `SPC_TEST_DATABASE_URL` is set.
+Alembic owns the production schema; DuckDB applies the shared DDL on open.
+Pipelines never import infrastructure — the script composition root wires
+adapters.
+
+**Verified:** `make check` green — all gates including architecture, contract,
+integration, e2e, security, and coverage. PostgreSQL adapter tests skip unless
+`SPC_TEST_DATABASE_URL` is set.
+
+**Next:** Phase 11 — application use cases, API, and CLI.
+
+### 2026-08-05 — Phase 9: SPC analytics engine
+
+Closed the statistical core. Most of the chart, rule, capability, MSA, and
+variance packages were already in tree and green; this session finished the
+tail of the recommended order — spatial classification, the detection
+scorecard harness, the performance budget, and the validation write-up.
+
+`analytics/spatial/` classifies a wafer field as radial, edge, asymmetric, or
+**none**, with none the default. Edge is decided from structure in the radial
+residuals so a bowl cannot beat a ring on a raw correlation contest. The
+geometric predictors deliberately do not share code with the generator
+(ADR-0021). Five-site plans are refused: they confound radial with edge and
+overfit noise.
+
+`analytics/scoring/` scores detections against known onsets without importing
+`simulation/`. Detector registries and activation gates (FR-AD01 – FR-AD04)
+remain proposed and unimplemented. The scorecard is verified on hand-counted
+cases before it is trusted to score the engine.
+
+Against 200 seeded 1.5σ and 3σ step shifts, Western Electric detection rate is
+100%; localisation within ±3 points is 99% at 3σ. ARL₀ stays within ±15% of
+theory. One thousand points with Nelson's full set stay under the 50 ms budget.
+Figures are published in `docs/validation/detection-performance.md`.
+
+**Next:** Phase 10 — data pipelines and persistence.
+
+### 2026-08-04 — Phase 8: Synthetic fab data generator
+
+Built the instrument the rest of the project is scored on. `data/reference/`
+grew from a gate-module slice to a full fab — 12 steps, 26 parameters, 27
+process tools across 80 chambers, 15 gauges, 3 devices, 6 control plans — and
+`src/spc_platform/simulation/` turns it into measurements through a nested
+variance model, per-parameter sampling plans, and systematic spatial
+signatures. Eight faults are injected unlabelled with a manifest recording
+kind, scope, onset, and magnitude.
+
+Two `import-linter` contracts make the generator a two-way leaf. The one that
+matters is the ban on reaching `analytics/`: shared code between the generator
+and the analytics under test would cancel its own errors and make every
+detection score look excellent ([ADR-0021](DECISION_LOG.md#adr-0021)). So
+`simulation/validators.py` re-derives statistics `analytics/` will also
+compute, on purpose.
+
+The tests earned their place. Four defects surfaced that the gates could not
+have caught: a content digest that hashed strings by memory address, making the
+reproduction guarantee vacuous; outlier injection multiplied by the chamber
+count; Poisson counts remeasured with Gaussian noise, giving 20.4 defects on
+remeasured wafers; and a benchmark that timed the generator with `tracemalloc`
+running and under-reported throughput by 6.6×. Each would have shown up in
+Phase 9 as an inexplicable detection score rather than as a failure.
+
+Also found that mypy had been stopping at a `conftest.py` name collision and
+silently skipping `src/` for two phases. Fixing the configuration surfaced a
+backlog of type errors, now cleared.
+
+**Verified:** `make check` green — 252 tests, 12 contracts, 93% coverage. The
+default 500-lot dataset builds 226,261 rows in 1.8 s at 153 MiB and passes 153
+statistical checks; three characteristics are reported as unchecked because
+they carry the faults and have no clean quantity to compare.
+
+**Next:** Phase 9 — SPC analytics engine, scored against these manifests.
 
 ### 2026-08-04 — Phase 7: Domain model and configuration
 

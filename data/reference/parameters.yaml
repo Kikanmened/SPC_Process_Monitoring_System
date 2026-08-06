@@ -1,5 +1,17 @@
 # Parameter registry. Adding a controlled parameter is an engineering decision.
+#
+# `sampling_sites` is the measurement plan on the wafer — how many sites the
+# gauge visits. It is not a subgroup size: `subgrouping` says what the plotted
+# point is, and every parameter here plots a wafer mean.
+#
+# No parameter declares `sites_as_subgroup`. Sites within a wafer share the
+# systematic radial and edge signatures the process imposes, so treating them
+# as a rational subgroup absorbs that signature into the within-subgroup sigma,
+# widens the limits, and stops the chart signalling (R-04,
+# DATASET_GUIDE.md §4.2). The option exists in the vocabulary so that a
+# parameter which genuinely warrants it must say so explicitly and be reviewed.
 parameters:
+  # --- OXIDE_GROW ----------------------------------------------------------
   - parameter_id: OXIDE_THK
     name: Gate oxide thickness
     unit: nm
@@ -9,14 +21,14 @@ parameters:
     sampling_sites: 9
     description: Gate oxidation film thickness
 
-  - parameter_id: POLY_CD
-    name: Poly critical dimension
-    unit: nm
-    metrology_method: cd-sem
-    chart_type: xbar-r
+  - parameter_id: OXIDE_UNIF
+    name: Gate oxide within-wafer uniformity
+    unit: percent
+    metrology_method: ellipsometry
+    chart_type: i-mr
     subgrouping: wafer_mean
-    sampling_sites: 5
-    description: Gate poly CD
+    sampling_sites: 9
+    description: Within-wafer thickness range as a percentage of the mean
 
   - parameter_id: PARTICLE_COUNT
     name: Surface particle count
@@ -25,4 +37,222 @@ parameters:
     chart_type: c
     subgrouping: wafer_mean
     sampling_sites: 1
-    description: Particles ≥ 0.2 µm per wafer
+    description: Particles ≥ 0.2 µm per wafer after oxidation
+
+  # --- POLY_DEP ------------------------------------------------------------
+  - parameter_id: POLY_THK
+    name: Polysilicon thickness
+    unit: nm
+    metrology_method: ellipsometry
+    chart_type: xbar-s
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: As-deposited polysilicon film thickness
+
+  - parameter_id: POLY_SHEET_RS
+    name: Polysilicon sheet resistance
+    unit: ohm_per_sq
+    metrology_method: four-point-probe
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 5
+    description: Sheet resistance of the doped polysilicon layer
+
+  # --- GATE_LITHO ----------------------------------------------------------
+  - parameter_id: GATE_CD_ADI
+    name: Gate critical dimension after develop
+    unit: nm
+    metrology_method: cd-sem
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 5
+    description: Resist CD measured after develop inspect
+
+  - parameter_id: OVERLAY_X
+    name: Gate overlay X
+    unit: nm
+    metrology_method: overlay-metrology
+    chart_type: xbar-s
+    subgrouping: wafer_mean
+    sampling_sites: 13
+    description: Registration error to the previous layer along X
+
+  - parameter_id: OVERLAY_Y
+    name: Gate overlay Y
+    unit: nm
+    metrology_method: overlay-metrology
+    chart_type: xbar-s
+    subgrouping: wafer_mean
+    sampling_sites: 13
+    description: Registration error to the previous layer along Y
+
+  - parameter_id: RESIST_THK
+    name: Resist thickness
+    unit: nm
+    metrology_method: ellipsometry
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Coated photoresist film thickness
+
+  # --- POLY_ETCH -----------------------------------------------------------
+  - parameter_id: POLY_CD
+    name: Poly critical dimension
+    unit: nm
+    metrology_method: cd-sem
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 5
+    description: Gate poly CD measured after etch inspect
+
+  - parameter_id: ETCH_DEPTH
+    name: Poly etch depth
+    unit: nm
+    metrology_method: profilometry
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Etched step height into the polysilicon
+
+  - parameter_id: ETCH_UNIF
+    name: Poly etch within-wafer uniformity
+    unit: percent
+    metrology_method: profilometry
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Within-wafer etch depth range as a percentage of the mean
+
+  - parameter_id: POLY_CD_UNIF
+    name: Poly CD within-wafer uniformity
+    unit: percent
+    metrology_method: cd-sem
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Within-wafer CD range as a percentage of the mean
+
+  # --- SD_IMPLANT ----------------------------------------------------------
+  - parameter_id: IMPLANT_RS
+    name: Source/drain sheet resistance
+    unit: ohm_per_sq
+    metrology_method: four-point-probe
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Post-implant sheet resistance, the standing monitor for dose
+
+  # --- RTA_ANNEAL ----------------------------------------------------------
+  - parameter_id: ANNEAL_RS
+    name: Post-anneal sheet resistance
+    unit: ohm_per_sq
+    metrology_method: four-point-probe
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Sheet resistance after dopant activation
+
+  # --- ILD_DEP -------------------------------------------------------------
+  - parameter_id: ILD_THK
+    name: Interlayer dielectric thickness
+    unit: nm
+    metrology_method: ellipsometry
+    chart_type: xbar-s
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: As-deposited ILD film thickness
+
+  - parameter_id: ILD_UNIF
+    name: Interlayer dielectric uniformity
+    unit: percent
+    metrology_method: ellipsometry
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Within-wafer ILD thickness range as a percentage of the mean
+
+  # --- ILD_CMP -------------------------------------------------------------
+  - parameter_id: ILD_POST_CMP_THK
+    name: Interlayer dielectric thickness after CMP
+    unit: nm
+    metrology_method: ellipsometry
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 13
+    description: Remaining ILD thickness after planarisation
+
+  - parameter_id: ILD_DISHING
+    name: Interlayer dielectric dishing
+    unit: nm
+    metrology_method: profilometry
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Recess depth over wide features after planarisation
+
+  - parameter_id: CMP_PARTICLE
+    name: Post-CMP particle count
+    unit: count
+    metrology_method: laser-scattering
+    chart_type: c
+    subgrouping: wafer_mean
+    sampling_sites: 1
+    description: Particles ≥ 0.2 µm per wafer after planarisation and clean
+
+  # --- CONTACT_LITHO -------------------------------------------------------
+  - parameter_id: CONTACT_CD_ADI
+    name: Contact critical dimension after develop
+    unit: nm
+    metrology_method: cd-sem
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 5
+    description: Contact hole CD measured after develop inspect
+
+  # --- CONTACT_ETCH --------------------------------------------------------
+  - parameter_id: CONTACT_CD
+    name: Contact critical dimension
+    unit: nm
+    metrology_method: cd-sem
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 5
+    description: Contact hole CD measured after etch inspect
+
+  # --- METAL1_DEP ----------------------------------------------------------
+  - parameter_id: METAL1_THK
+    name: Metal 1 thickness
+    unit: nm
+    metrology_method: ellipsometry
+    chart_type: xbar-s
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: As-deposited metal 1 film thickness
+
+  - parameter_id: METAL1_SHEET_RS
+    name: Metal 1 sheet resistance
+    unit: ohm_per_sq
+    metrology_method: four-point-probe
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 5
+    description: Sheet resistance of the metal 1 film
+
+  # --- METAL1_CMP ----------------------------------------------------------
+  - parameter_id: METAL1_POST_CMP_THK
+    name: Metal 1 thickness after CMP
+    unit: nm
+    metrology_method: ellipsometry
+    chart_type: xbar-r
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Remaining metal 1 thickness after planarisation
+
+  - parameter_id: METAL1_EROSION
+    name: Metal 1 erosion
+    unit: nm
+    metrology_method: profilometry
+    chart_type: i-mr
+    subgrouping: wafer_mean
+    sampling_sites: 9
+    description: Array erosion depth after planarisation

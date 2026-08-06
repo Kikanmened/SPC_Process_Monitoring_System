@@ -1,6 +1,20 @@
 # Specification limits with effective dates. Historical values are retained —
 # overwriting destroys the ability to assess past conformance (FR-CF03).
+#
+# `POLY_CD` on DEV-A is the worked example of that rule: the window was tightened
+# on 2025-07-01, and both the old and the new limit are here. A conformance
+# statement about March must use the limit that was in force in March, and an
+# auditor will ask to see it.
+#
+# A single-sided characteristic leaves the open side absent rather than setting a
+# placeholder. Targets are plausible in magnitude and invented in substance
+# (DATASET_GUIDE.md §7).
 specification_limits:
+  # ======================================================================
+  # DEV-A — 28 nm logic, the fully instrumented device
+  # ======================================================================
+
+  # --- OXIDE_GROW ---------------------------------------------------------
   - parameter_id: OXIDE_THK
     product_id: DEV-A
     step_id: OXIDE_GROW
@@ -10,13 +24,12 @@ specification_limits:
     target: 10.0
     effective_from: "2025-01-01T00:00:00+00:00"
 
-  - parameter_id: POLY_CD
+  - parameter_id: OXIDE_UNIF
     product_id: DEV-A
-    step_id: POLY_ETCH
-    unit: nm
-    lsl: 38.0
-    usl: 42.0
-    target: 40.0
+    step_id: OXIDE_GROW
+    unit: percent
+    usl: 3.0
+    target: 1.6
     effective_from: "2025-01-01T00:00:00+00:00"
 
   - parameter_id: PARTICLE_COUNT
@@ -24,4 +37,400 @@ specification_limits:
     step_id: OXIDE_GROW
     unit: count
     usl: 50.0
+    target: 18.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- POLY_DEP -----------------------------------------------------------
+  - parameter_id: POLY_THK
+    product_id: DEV-A
+    step_id: POLY_DEP
+    unit: nm
+    lsl: 170.0
+    usl: 190.0
+    target: 180.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: POLY_SHEET_RS
+    product_id: DEV-A
+    step_id: POLY_DEP
+    unit: ohm_per_sq
+    lsl: 19.0
+    usl: 25.0
+    target: 22.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- GATE_LITHO ---------------------------------------------------------
+  - parameter_id: GATE_CD_ADI
+    product_id: DEV-A
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: 41.0
+    usl: 49.0
+    target: 45.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: OVERLAY_X
+    product_id: DEV-A
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: -8.0
+    usl: 8.0
+    target: 0.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: OVERLAY_Y
+    product_id: DEV-A
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: -8.0
+    usl: 8.0
+    target: 0.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: RESIST_THK
+    product_id: DEV-A
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: 235.0
+    usl: 265.0
+    target: 250.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- POLY_ETCH ----------------------------------------------------------
+  # Superseded window. Retained, not overwritten.
+  - parameter_id: POLY_CD
+    product_id: DEV-A
+    step_id: POLY_ETCH
+    unit: nm
+    lsl: 37.5
+    usl: 42.5
+    target: 40.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+    effective_to: "2025-07-01T00:00:00+00:00"
+
+  - parameter_id: POLY_CD
+    product_id: DEV-A
+    step_id: POLY_ETCH
+    unit: nm
+    lsl: 38.0
+    usl: 42.0
+    target: 40.0
+    effective_from: "2025-07-01T00:00:00+00:00"
+
+  - parameter_id: ETCH_DEPTH
+    product_id: DEV-A
+    step_id: POLY_ETCH
+    unit: nm
+    lsl: 300.0
+    usl: 340.0
+    target: 320.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: ETCH_UNIF
+    product_id: DEV-A
+    step_id: POLY_ETCH
+    unit: percent
+    usl: 4.0
+    target: 2.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: POLY_CD_UNIF
+    product_id: DEV-A
+    step_id: POLY_ETCH
+    unit: percent
+    usl: 3.5
+    target: 1.8
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- SD_IMPLANT ---------------------------------------------------------
+  - parameter_id: IMPLANT_RS
+    product_id: DEV-A
+    step_id: SD_IMPLANT
+    unit: ohm_per_sq
+    lsl: 440.0
+    usl: 520.0
+    target: 480.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- RTA_ANNEAL ---------------------------------------------------------
+  - parameter_id: ANNEAL_RS
+    product_id: DEV-A
+    step_id: RTA_ANNEAL
+    unit: ohm_per_sq
+    lsl: 190.0
+    usl: 230.0
+    target: 210.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- ILD_DEP ------------------------------------------------------------
+  - parameter_id: ILD_THK
+    product_id: DEV-A
+    step_id: ILD_DEP
+    unit: nm
+    lsl: 800.0
+    usl: 900.0
+    target: 850.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: ILD_UNIF
+    product_id: DEV-A
+    step_id: ILD_DEP
+    unit: percent
+    usl: 4.0
+    target: 2.1
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- ILD_CMP ------------------------------------------------------------
+  - parameter_id: ILD_POST_CMP_THK
+    product_id: DEV-A
+    step_id: ILD_CMP
+    unit: nm
+    lsl: 565.0
+    usl: 635.0
+    target: 600.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: ILD_DISHING
+    product_id: DEV-A
+    step_id: ILD_CMP
+    unit: nm
+    usl: 25.0
+    target: 10.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: CMP_PARTICLE
+    product_id: DEV-A
+    step_id: ILD_CMP
+    unit: count
+    usl: 60.0
+    target: 22.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- CONTACT_LITHO ------------------------------------------------------
+  - parameter_id: CONTACT_CD_ADI
+    product_id: DEV-A
+    step_id: CONTACT_LITHO
+    unit: nm
+    lsl: 59.0
+    usl: 71.0
+    target: 65.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- CONTACT_ETCH -------------------------------------------------------
+  - parameter_id: CONTACT_CD
+    product_id: DEV-A
+    step_id: CONTACT_ETCH
+    unit: nm
+    lsl: 55.0
+    usl: 65.0
+    target: 60.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- METAL1_DEP ---------------------------------------------------------
+  - parameter_id: METAL1_THK
+    product_id: DEV-A
+    step_id: METAL1_DEP
+    unit: nm
+    lsl: 420.0
+    usl: 480.0
+    target: 450.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: METAL1_SHEET_RS
+    product_id: DEV-A
+    step_id: METAL1_DEP
+    unit: ohm_per_sq
+    lsl: 50.0
+    usl: 60.0
+    target: 55.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # --- METAL1_CMP ---------------------------------------------------------
+  - parameter_id: METAL1_POST_CMP_THK
+    product_id: DEV-A
+    step_id: METAL1_CMP
+    unit: nm
+    lsl: 355.0
+    usl: 405.0
+    target: 380.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: METAL1_EROSION
+    product_id: DEV-A
+    step_id: METAL1_CMP
+    unit: nm
+    usl: 20.0
+    target: 8.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # ======================================================================
+  # DEV-B — 28 nm logic, same node as DEV-A and therefore the same targets.
+  # A narrower control set: this device is mature and monitored at fewer
+  # steps. Shared targets are what make tool commonality analysis across the
+  # two products meaningful.
+  # ======================================================================
+  - parameter_id: OXIDE_THK
+    product_id: DEV-B
+    step_id: OXIDE_GROW
+    unit: nm
+    lsl: 9.5
+    usl: 10.5
+    target: 10.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: PARTICLE_COUNT
+    product_id: DEV-B
+    step_id: OXIDE_GROW
+    unit: count
+    usl: 50.0
+    target: 18.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: GATE_CD_ADI
+    product_id: DEV-B
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: 41.0
+    usl: 49.0
+    target: 45.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: OVERLAY_X
+    product_id: DEV-B
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: -8.0
+    usl: 8.0
+    target: 0.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: OVERLAY_Y
+    product_id: DEV-B
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: -8.0
+    usl: 8.0
+    target: 0.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: POLY_CD
+    product_id: DEV-B
+    step_id: POLY_ETCH
+    unit: nm
+    lsl: 38.0
+    usl: 42.0
+    target: 40.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: ILD_THK
+    product_id: DEV-B
+    step_id: ILD_DEP
+    unit: nm
+    lsl: 800.0
+    usl: 900.0
+    target: 850.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: ILD_POST_CMP_THK
+    product_id: DEV-B
+    step_id: ILD_CMP
+    unit: nm
+    lsl: 565.0
+    usl: 635.0
+    target: 600.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: CONTACT_CD
+    product_id: DEV-B
+    step_id: CONTACT_ETCH
+    unit: nm
+    lsl: 55.0
+    usl: 65.0
+    target: 60.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: METAL1_THK
+    product_id: DEV-B
+    step_id: METAL1_DEP
+    unit: nm
+    lsl: 420.0
+    usl: 480.0
+    target: 450.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  # ======================================================================
+  # DEV-C — 40 nm logic. A different node, so different targets and wider
+  # windows on every dimensional characteristic. Running it on the same tools
+  # as the 28 nm devices is what makes product mix a real variable in the
+  # generated data rather than a label.
+  # ======================================================================
+  - parameter_id: OXIDE_THK
+    product_id: DEV-C
+    step_id: OXIDE_GROW
+    unit: nm
+    lsl: 11.2
+    usl: 12.8
+    target: 12.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: PARTICLE_COUNT
+    product_id: DEV-C
+    step_id: OXIDE_GROW
+    unit: count
+    usl: 60.0
+    target: 22.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: GATE_CD_ADI
+    product_id: DEV-C
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: 64.0
+    usl: 76.0
+    target: 70.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: OVERLAY_X
+    product_id: DEV-C
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: -12.0
+    usl: 12.0
+    target: 0.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: OVERLAY_Y
+    product_id: DEV-C
+    step_id: GATE_LITHO
+    unit: nm
+    lsl: -12.0
+    usl: 12.0
+    target: 0.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: POLY_CD
+    product_id: DEV-C
+    step_id: POLY_ETCH
+    unit: nm
+    lsl: 60.0
+    usl: 70.0
+    target: 65.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: ILD_THK
+    product_id: DEV-C
+    step_id: ILD_DEP
+    unit: nm
+    lsl: 840.0
+    usl: 960.0
+    target: 900.0
+    effective_from: "2025-01-01T00:00:00+00:00"
+
+  - parameter_id: METAL1_THK
+    product_id: DEV-C
+    step_id: METAL1_DEP
+    unit: nm
+    lsl: 460.0
+    usl: 540.0
+    target: 500.0
     effective_from: "2025-01-01T00:00:00+00:00"

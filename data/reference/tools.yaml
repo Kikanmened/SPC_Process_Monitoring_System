@@ -1,4 +1,14 @@
+# Tool and chamber registry. A newly qualified tool is a reviewed data change.
+#
+# Chambers are declared because chamber mismatch within a tool is a leading
+# explanation for an apparent process shift, and a measurement that cannot name
+# its chamber cannot be assigned to one (DATASET_GUIDE.md §3.1). A process tool
+# with no chambers listed would be a modelling error; a metrology tool with
+# chambers would be the same mistake in the other direction.
+#
+# `chambers` entries inherit `tool_id` from their parent and must not restate it.
 tools:
+  # === OXIDE_GROW ==========================================================
   - tool_id: OX-01
     step_id: OXIDE_GROW
     name: Oxidation furnace 01
@@ -9,6 +19,83 @@ tools:
       - chamber_id: OX-01-B
         name: Tube B
 
+  - tool_id: OX-02
+    step_id: OXIDE_GROW
+    name: Oxidation furnace 02
+    is_metrology: false
+    chambers:
+      - chamber_id: OX-02-A
+        name: Tube A
+      - chamber_id: OX-02-B
+        name: Tube B
+
+  - tool_id: OX-03
+    step_id: OXIDE_GROW
+    name: Oxidation furnace 03
+    is_metrology: false
+    chambers:
+      - chamber_id: OX-03-A
+        name: Tube A
+      - chamber_id: OX-03-B
+        name: Tube B
+
+  # === POLY_DEP ============================================================
+  - tool_id: PLD-01
+    step_id: POLY_DEP
+    name: Polysilicon LPCVD 01
+    is_metrology: false
+    chambers:
+      - chamber_id: PLD-01-A
+        name: Chamber A
+      - chamber_id: PLD-01-B
+        name: Chamber B
+      - chamber_id: PLD-01-C
+        name: Chamber C
+
+  - tool_id: PLD-02
+    step_id: POLY_DEP
+    name: Polysilicon LPCVD 02
+    is_metrology: false
+    chambers:
+      - chamber_id: PLD-02-A
+        name: Chamber A
+      - chamber_id: PLD-02-B
+        name: Chamber B
+      - chamber_id: PLD-02-C
+        name: Chamber C
+
+  # === GATE_LITHO ==========================================================
+  - tool_id: LTH-01
+    step_id: GATE_LITHO
+    name: Gate scanner 01
+    is_metrology: false
+    chambers:
+      - chamber_id: LTH-01-A
+        name: Exposure body A
+      - chamber_id: LTH-01-B
+        name: Exposure body B
+
+  - tool_id: LTH-02
+    step_id: GATE_LITHO
+    name: Gate scanner 02
+    is_metrology: false
+    chambers:
+      - chamber_id: LTH-02-A
+        name: Exposure body A
+      - chamber_id: LTH-02-B
+        name: Exposure body B
+
+  - tool_id: LTH-03
+    step_id: GATE_LITHO
+    name: Gate scanner 03
+    is_metrology: false
+    chambers:
+      - chamber_id: LTH-03-A
+        name: Exposure body A
+      - chamber_id: LTH-03-B
+        name: Exposure body B
+
+  # === POLY_ETCH ===========================================================
   - tool_id: ET-01
     step_id: POLY_ETCH
     name: Poly etcher 01
@@ -19,8 +106,333 @@ tools:
       - chamber_id: ET-01-B
         name: Chamber B
 
+  - tool_id: ET-02
+    step_id: POLY_ETCH
+    name: Poly etcher 02
+    is_metrology: false
+    chambers:
+      - chamber_id: ET-02-A
+        name: Chamber A
+      - chamber_id: ET-02-B
+        name: Chamber B
+      - chamber_id: ET-02-C
+        name: Chamber C
+      - chamber_id: ET-02-D
+        name: Chamber D
+
+  - tool_id: ET-03
+    step_id: POLY_ETCH
+    name: Poly etcher 03
+    is_metrology: false
+    chambers:
+      - chamber_id: ET-03-A
+        name: Chamber A
+      - chamber_id: ET-03-B
+        name: Chamber B
+      - chamber_id: ET-03-C
+        name: Chamber C
+      - chamber_id: ET-03-D
+        name: Chamber D
+
+  # === SD_IMPLANT ==========================================================
+  - tool_id: IMP-01
+    step_id: SD_IMPLANT
+    name: Medium current implanter 01
+    is_metrology: false
+    chambers:
+      - chamber_id: IMP-01-A
+        name: End station A
+      - chamber_id: IMP-01-B
+        name: End station B
+
+  - tool_id: IMP-02
+    step_id: SD_IMPLANT
+    name: Medium current implanter 02
+    is_metrology: false
+    chambers:
+      - chamber_id: IMP-02-A
+        name: End station A
+      - chamber_id: IMP-02-B
+        name: End station B
+
+  # === RTA_ANNEAL ==========================================================
+  - tool_id: RTA-01
+    step_id: RTA_ANNEAL
+    name: Rapid thermal processor 01
+    is_metrology: false
+    chambers:
+      - chamber_id: RTA-01-A
+        name: Chamber A
+      - chamber_id: RTA-01-B
+        name: Chamber B
+
+  - tool_id: RTA-02
+    step_id: RTA_ANNEAL
+    name: Rapid thermal processor 02
+    is_metrology: false
+    chambers:
+      - chamber_id: RTA-02-A
+        name: Chamber A
+      - chamber_id: RTA-02-B
+        name: Chamber B
+
+  # === ILD_DEP =============================================================
+  - tool_id: CVD-01
+    step_id: ILD_DEP
+    name: Dielectric PECVD 01
+    is_metrology: false
+    chambers:
+      - chamber_id: CVD-01-A
+        name: Chamber A
+      - chamber_id: CVD-01-B
+        name: Chamber B
+      - chamber_id: CVD-01-C
+        name: Chamber C
+      - chamber_id: CVD-01-D
+        name: Chamber D
+      - chamber_id: CVD-01-E
+        name: Chamber E
+      - chamber_id: CVD-01-F
+        name: Chamber F
+
+  - tool_id: CVD-02
+    step_id: ILD_DEP
+    name: Dielectric PECVD 02
+    is_metrology: false
+    chambers:
+      - chamber_id: CVD-02-A
+        name: Chamber A
+      - chamber_id: CVD-02-B
+        name: Chamber B
+      - chamber_id: CVD-02-C
+        name: Chamber C
+      - chamber_id: CVD-02-D
+        name: Chamber D
+      - chamber_id: CVD-02-E
+        name: Chamber E
+      - chamber_id: CVD-02-F
+        name: Chamber F
+
+  # === ILD_CMP =============================================================
+  - tool_id: CMP-01
+    step_id: ILD_CMP
+    name: Oxide polisher 01
+    is_metrology: false
+    chambers:
+      - chamber_id: CMP-01-A
+        name: Platen A
+      - chamber_id: CMP-01-B
+        name: Platen B
+      - chamber_id: CMP-01-C
+        name: Platen C
+
+  - tool_id: CMP-02
+    step_id: ILD_CMP
+    name: Oxide polisher 02
+    is_metrology: false
+    chambers:
+      - chamber_id: CMP-02-A
+        name: Platen A
+      - chamber_id: CMP-02-B
+        name: Platen B
+      - chamber_id: CMP-02-C
+        name: Platen C
+
+  # === CONTACT_LITHO =======================================================
+  - tool_id: LTH-04
+    step_id: CONTACT_LITHO
+    name: Contact scanner 01
+    is_metrology: false
+    chambers:
+      - chamber_id: LTH-04-A
+        name: Exposure body A
+      - chamber_id: LTH-04-B
+        name: Exposure body B
+
+  - tool_id: LTH-05
+    step_id: CONTACT_LITHO
+    name: Contact scanner 02
+    is_metrology: false
+    chambers:
+      - chamber_id: LTH-05-A
+        name: Exposure body A
+      - chamber_id: LTH-05-B
+        name: Exposure body B
+
+  # === CONTACT_ETCH ========================================================
+  - tool_id: ET-04
+    step_id: CONTACT_ETCH
+    name: Contact etcher 01
+    is_metrology: false
+    chambers:
+      - chamber_id: ET-04-A
+        name: Chamber A
+      - chamber_id: ET-04-B
+        name: Chamber B
+      - chamber_id: ET-04-C
+        name: Chamber C
+      - chamber_id: ET-04-D
+        name: Chamber D
+
+  - tool_id: ET-05
+    step_id: CONTACT_ETCH
+    name: Contact etcher 02
+    is_metrology: false
+    chambers:
+      - chamber_id: ET-05-A
+        name: Chamber A
+      - chamber_id: ET-05-B
+        name: Chamber B
+      - chamber_id: ET-05-C
+        name: Chamber C
+      - chamber_id: ET-05-D
+        name: Chamber D
+
+  # === METAL1_DEP ==========================================================
+  - tool_id: PVD-01
+    step_id: METAL1_DEP
+    name: Metal PVD 01
+    is_metrology: false
+    chambers:
+      - chamber_id: PVD-01-A
+        name: Chamber A
+      - chamber_id: PVD-01-B
+        name: Chamber B
+      - chamber_id: PVD-01-C
+        name: Chamber C
+      - chamber_id: PVD-01-D
+        name: Chamber D
+
+  - tool_id: PVD-02
+    step_id: METAL1_DEP
+    name: Metal PVD 02
+    is_metrology: false
+    chambers:
+      - chamber_id: PVD-02-A
+        name: Chamber A
+      - chamber_id: PVD-02-B
+        name: Chamber B
+      - chamber_id: PVD-02-C
+        name: Chamber C
+      - chamber_id: PVD-02-D
+        name: Chamber D
+
+  # === METAL1_CMP ==========================================================
+  - tool_id: CMP-03
+    step_id: METAL1_CMP
+    name: Metal polisher 01
+    is_metrology: false
+    chambers:
+      - chamber_id: CMP-03-A
+        name: Platen A
+      - chamber_id: CMP-03-B
+        name: Platen B
+      - chamber_id: CMP-03-C
+        name: Platen C
+
+  - tool_id: CMP-04
+    step_id: METAL1_CMP
+    name: Metal polisher 02
+    is_metrology: false
+    chambers:
+      - chamber_id: CMP-04-A
+        name: Platen A
+      - chamber_id: CMP-04-B
+        name: Platen B
+      - chamber_id: CMP-04-C
+        name: Platen C
+
+  # === Metrology ===========================================================
+  # A gauge is registered against the step it primarily serves. The mapping
+  # from metrology method to the gauges that perform it is generator
+  # configuration (configs/simulation/), not reference data, because the domain
+  # `Tool` model does not carry a method — see docs/DECISION_LOG.md ADR-0022.
   - tool_id: MET-ELLIP-01
     step_id: OXIDE_GROW
     name: Ellipsometer 01
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-ELLIP-02
+    step_id: POLY_DEP
+    name: Ellipsometer 02
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-ELLIP-03
+    step_id: ILD_DEP
+    name: Ellipsometer 03
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-ELLIP-04
+    step_id: METAL1_DEP
+    name: Ellipsometer 04
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-CDSEM-01
+    step_id: GATE_LITHO
+    name: CD-SEM 01
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-CDSEM-02
+    step_id: POLY_ETCH
+    name: CD-SEM 02
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-CDSEM-03
+    step_id: CONTACT_ETCH
+    name: CD-SEM 03
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-OVL-01
+    step_id: GATE_LITHO
+    name: Overlay metrology 01
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-OVL-02
+    step_id: CONTACT_LITHO
+    name: Overlay metrology 02
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-4PP-01
+    step_id: POLY_DEP
+    name: Four-point probe 01
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-4PP-02
+    step_id: SD_IMPLANT
+    name: Four-point probe 02
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-PROF-01
+    step_id: POLY_ETCH
+    name: Stylus profilometer 01
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-PROF-02
+    step_id: ILD_CMP
+    name: Stylus profilometer 02
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-PART-01
+    step_id: OXIDE_GROW
+    name: Particle scanner 01
+    is_metrology: true
+    chambers: []
+
+  - tool_id: MET-PART-02
+    step_id: ILD_CMP
+    name: Particle scanner 02
     is_metrology: true
     chambers: []

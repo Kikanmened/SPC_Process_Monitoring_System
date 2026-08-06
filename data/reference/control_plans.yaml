@@ -1,7 +1,23 @@
 # The control plan is the specification this platform implements.
+#
+# It is also the sampling authority. `sample_size` is the number of wafers
+# measured per lot for that characteristic — and therefore the subgroup size on
+# the chart — while `frequency` says how often the lot is sampled at all. The
+# synthetic generator reads both from here rather than restating them in its own
+# configuration, so a dataset cannot be sampled differently from the plan the
+# platform charts it against.
+#
+# Recognised frequencies: every_lot, every_2nd_lot, every_5th_lot.
+#
+# Subgroup size follows the chart family: 1 for i-mr and c, 5 for xbar-r, and 10
+# for xbar-s, which is where the sample standard deviation becomes the better
+# estimator of spread than the range (Montgomery §6.3).
 control_plans:
-  - plan_id: CP-DEV-A-GATE
-    name: Device A gate module control plan
+  # ======================================================================
+  # DEV-A — 28 nm logic
+  # ======================================================================
+  - plan_id: CP-DEV-A-FEOL
+    name: Device A front-end control plan
     characteristics:
       - parameter_id: OXIDE_THK
         product_id: DEV-A
@@ -10,6 +26,78 @@ control_plans:
         sample_size: 1
         frequency: every_lot
         ocap_id: OCAP-OXIDE-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: OXIDE_UNIF
+        product_id: DEV-A
+        step_id: OXIDE_GROW
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-OXIDE-UNIF
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: PARTICLE_COUNT
+        product_id: DEV-A
+        step_id: OXIDE_GROW
+        chart_type: c
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-PARTICLES
+        rule_set_name: shewhart_only
+
+      - parameter_id: POLY_THK
+        product_id: DEV-A
+        step_id: POLY_DEP
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-POLY-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: POLY_SHEET_RS
+        product_id: DEV-A
+        step_id: POLY_DEP
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_5th_lot
+        ocap_id: OCAP-POLY-RS
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: GATE_CD_ADI
+        product_id: DEV-A
+        step_id: GATE_LITHO
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-GATE-CD-ADI
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: OVERLAY_X
+        product_id: DEV-A
+        step_id: GATE_LITHO
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_lot
+        ocap_id: OCAP-OVERLAY
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: OVERLAY_Y
+        product_id: DEV-A
+        step_id: GATE_LITHO
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_lot
+        ocap_id: OCAP-OVERLAY
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: RESIST_THK
+        product_id: DEV-A
+        step_id: GATE_LITHO
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-RESIST-THK
         rule_set_name: western_electric_1_4
 
       - parameter_id: POLY_CD
@@ -21,11 +109,331 @@ control_plans:
         ocap_id: OCAP-POLY-CD
         rule_set_name: western_electric_1_4
 
-      - parameter_id: PARTICLE_COUNT
+      - parameter_id: ETCH_DEPTH
         product_id: DEV-A
+        step_id: POLY_ETCH
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_2nd_lot
+        ocap_id: OCAP-ETCH-DEPTH
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: ETCH_UNIF
+        product_id: DEV-A
+        step_id: POLY_ETCH
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-ETCH-UNIF
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: POLY_CD_UNIF
+        product_id: DEV-A
+        step_id: POLY_ETCH
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-POLY-CD-UNIF
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: IMPLANT_RS
+        product_id: DEV-A
+        step_id: SD_IMPLANT
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_2nd_lot
+        ocap_id: OCAP-IMPLANT-RS
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: ANNEAL_RS
+        product_id: DEV-A
+        step_id: RTA_ANNEAL
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-ANNEAL-RS
+        rule_set_name: western_electric_1_4
+
+  - plan_id: CP-DEV-A-BEOL
+    name: Device A back-end control plan
+    characteristics:
+      - parameter_id: ILD_THK
+        product_id: DEV-A
+        step_id: ILD_DEP
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-ILD-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: ILD_UNIF
+        product_id: DEV-A
+        step_id: ILD_DEP
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-ILD-UNIF
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: ILD_POST_CMP_THK
+        product_id: DEV-A
+        step_id: ILD_CMP
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_2nd_lot
+        ocap_id: OCAP-ILD-CMP-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: ILD_DISHING
+        product_id: DEV-A
+        step_id: ILD_CMP
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-ILD-DISHING
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: CMP_PARTICLE
+        product_id: DEV-A
+        step_id: ILD_CMP
+        chart_type: c
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-CMP-PARTICLES
+        rule_set_name: shewhart_only
+
+      - parameter_id: CONTACT_CD_ADI
+        product_id: DEV-A
+        step_id: CONTACT_LITHO
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-CONTACT-CD-ADI
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: CONTACT_CD
+        product_id: DEV-A
+        step_id: CONTACT_ETCH
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-CONTACT-CD
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: METAL1_THK
+        product_id: DEV-A
+        step_id: METAL1_DEP
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-METAL1-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: METAL1_SHEET_RS
+        product_id: DEV-A
+        step_id: METAL1_DEP
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_5th_lot
+        ocap_id: OCAP-METAL1-RS
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: METAL1_POST_CMP_THK
+        product_id: DEV-A
+        step_id: METAL1_CMP
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_2nd_lot
+        ocap_id: OCAP-METAL1-CMP-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: METAL1_EROSION
+        product_id: DEV-A
+        step_id: METAL1_CMP
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-METAL1-EROSION
+        rule_set_name: western_electric_1_4
+
+  # ======================================================================
+  # DEV-B — 28 nm logic, mature. Fewer controlled characteristics, same
+  # targets and the same tools as DEV-A.
+  # ======================================================================
+  - plan_id: CP-DEV-B-FEOL
+    name: Device B front-end control plan
+    characteristics:
+      - parameter_id: OXIDE_THK
+        product_id: DEV-B
+        step_id: OXIDE_GROW
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_lot
+        ocap_id: OCAP-OXIDE-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: PARTICLE_COUNT
+        product_id: DEV-B
         step_id: OXIDE_GROW
         chart_type: c
         sample_size: 1
-        frequency: every_lot
+        frequency: every_5th_lot
         ocap_id: OCAP-PARTICLES
         rule_set_name: shewhart_only
+
+      - parameter_id: GATE_CD_ADI
+        product_id: DEV-B
+        step_id: GATE_LITHO
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-GATE-CD-ADI
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: OVERLAY_X
+        product_id: DEV-B
+        step_id: GATE_LITHO
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-OVERLAY
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: OVERLAY_Y
+        product_id: DEV-B
+        step_id: GATE_LITHO
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-OVERLAY
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: POLY_CD
+        product_id: DEV-B
+        step_id: POLY_ETCH
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-POLY-CD
+        rule_set_name: western_electric_1_4
+
+  - plan_id: CP-DEV-B-BEOL
+    name: Device B back-end control plan
+    characteristics:
+      - parameter_id: ILD_THK
+        product_id: DEV-B
+        step_id: ILD_DEP
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-ILD-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: ILD_POST_CMP_THK
+        product_id: DEV-B
+        step_id: ILD_CMP
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_5th_lot
+        ocap_id: OCAP-ILD-CMP-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: CONTACT_CD
+        product_id: DEV-B
+        step_id: CONTACT_ETCH
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-CONTACT-CD
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: METAL1_THK
+        product_id: DEV-B
+        step_id: METAL1_DEP
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_5th_lot
+        ocap_id: OCAP-METAL1-THK
+        rule_set_name: western_electric_1_4
+
+  # ======================================================================
+  # DEV-C — 40 nm logic. Different targets and wider windows, sharing the
+  # tool fleet with the 28 nm devices.
+  # ======================================================================
+  - plan_id: CP-DEV-C-FEOL
+    name: Device C front-end control plan
+    characteristics:
+      - parameter_id: OXIDE_THK
+        product_id: DEV-C
+        step_id: OXIDE_GROW
+        chart_type: i-mr
+        sample_size: 1
+        frequency: every_lot
+        ocap_id: OCAP-OXIDE-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: PARTICLE_COUNT
+        product_id: DEV-C
+        step_id: OXIDE_GROW
+        chart_type: c
+        sample_size: 1
+        frequency: every_5th_lot
+        ocap_id: OCAP-PARTICLES
+        rule_set_name: shewhart_only
+
+      - parameter_id: GATE_CD_ADI
+        product_id: DEV-C
+        step_id: GATE_LITHO
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-GATE-CD-ADI
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: OVERLAY_X
+        product_id: DEV-C
+        step_id: GATE_LITHO
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-OVERLAY
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: OVERLAY_Y
+        product_id: DEV-C
+        step_id: GATE_LITHO
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-OVERLAY
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: POLY_CD
+        product_id: DEV-C
+        step_id: POLY_ETCH
+        chart_type: xbar-r
+        sample_size: 5
+        frequency: every_lot
+        ocap_id: OCAP-POLY-CD
+        rule_set_name: western_electric_1_4
+
+  - plan_id: CP-DEV-C-BEOL
+    name: Device C back-end control plan
+    characteristics:
+      - parameter_id: ILD_THK
+        product_id: DEV-C
+        step_id: ILD_DEP
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_2nd_lot
+        ocap_id: OCAP-ILD-THK
+        rule_set_name: western_electric_1_4
+
+      - parameter_id: METAL1_THK
+        product_id: DEV-C
+        step_id: METAL1_DEP
+        chart_type: xbar-s
+        sample_size: 10
+        frequency: every_5th_lot
+        ocap_id: OCAP-METAL1-THK
+        rule_set_name: western_electric_1_4

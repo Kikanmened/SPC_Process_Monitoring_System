@@ -1,0 +1,27 @@
+# Chart-type defaults and memory-chart parameters (FR-C02, FR-C08).
+#
+# Per-parameter selection lives in the control plan; this file holds the
+# platform defaults a plan may inherit. Changing a default here changes what
+# every parameter without an override means — treat it as a statistical change.
+
+defaults:
+  sigma_multiplier: 3.0
+  rule_set: western-electric
+
+ewma:
+  # Roberts (1959); Montgomery (2019) §9.2. λ = 0.2 is the common industrial
+  # starting point: sensitive to ~1σ shifts without making the chart twitchy.
+  weight: 0.2
+  sigma_multiplier: 3.0
+  asymptotic_limits: false
+
+cusum:
+  # Montgomery (2019) §9.1. k = 0.5, h = 5 is the standard two-sided design
+  # aimed at a 1σ shift.
+  k: 0.5
+  h: 5.0
+
+variables:
+  # Switch from R to S when subgroups exceed this size (Montgomery §6.3).
+  prefer_stdev_above_subgroup_size: 10
+  moving_range_span: 2
