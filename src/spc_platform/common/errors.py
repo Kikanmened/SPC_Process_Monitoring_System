@@ -113,3 +113,7 @@ class SubgroupingError(SPCPlatformError):
 
 class PipelinePublishError(SPCPlatformError):
     """A pipeline stage could not publish atomically to its destination zone."""
+
+
+class ViewDataUnavailableError(SPCPlatformError):
+    """A view model could not be built; the UI must render the reason, not invent data."""

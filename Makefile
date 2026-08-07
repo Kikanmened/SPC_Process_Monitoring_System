@@ -113,6 +113,12 @@ dataset-check: ## Validate a generated dataset against its ground-truth manifest
 dataset-bench: ## Time the generator and report throughput
 	uv run --frozen python scripts/simulation/benchmark_generator.py $(ARGS)
 
+# --- Dashboard -------------------------------------------------------------
+
+.PHONY: demo
+demo: ## Launch the Streamlit dashboard against the local fake composition root
+	uv run --frozen streamlit run dashboard/app/main.py
+
 # --- Convenience -----------------------------------------------------------
 
 .PHONY: fix

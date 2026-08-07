@@ -14,7 +14,6 @@ from tests.factories.application import (
 )
 from tests.factories.domain import a_measurement, aware
 
-from spc_platform.analytics.msa import AcceptanceBands
 from spc_platform.application.audit import AuditEventType
 from spc_platform.application.context import ApplicationServices
 from spc_platform.application.ports.authorisation import ProtectedAction
@@ -217,16 +216,13 @@ def test_run_gauge_study() -> None:
     for p_index in range(10):
         for o_index in range(3):
             data[p_index, o_index, :] = part[p_index] + rng.normal(0.0, 0.2, size=3)
-    bands = AcceptanceBands(
-        acceptable_percent=10.0,
-        marginal_percent=30.0,
-        minimum_distinct_categories=5,
-    )
     outcome = run_gauge_study(
         bundle.services,
         actor=ACTOR,
         measurements=data,
-        bands=bands,
+        acceptable_percent=10.0,
+        marginal_percent=30.0,
+        minimum_distinct_categories=5,
         tolerance=10.0,
     )
     assert outcome.judgement.verdict.value in {
@@ -261,6 +257,8 @@ def test_get_wafer_map_audits_access() -> None:
         lot_id=LotId("LOT-MAP"),
         wafer_id=WaferId("LOT-MAP:1"),
     )
+    assert view.n_sites_total == 5
     assert len(view.sites) == 5
-    assert view.spatial is None
+    assert view.spatial_signature is None
+    assert view.is_aggregated is False
     assert bundle.audit.list_for(AuditEventType.MEASUREMENT_DATA_ACCESS)

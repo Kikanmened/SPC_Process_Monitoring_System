@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spc-platform"
-version = "0.11.0"
+version = "0.12.0"
 description = "Statistical process control monitoring platform for semiconductor wafer fabrication"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
@@ -84,7 +84,7 @@ packages = ["src/spc_platform"]
 [tool.ruff]
 line-length = 100
 target-version = "py313"
-src = ["src", "tests", "scripts"]
+src = ["src", "tests", "scripts", "dashboard"]
 # Markdown is excluded because Ruff would reformat the illustrative snippets in
 # docs/, where comment alignment and spacing are chosen to make a contrast
 # readable rather than to satisfy a formatter.
@@ -149,6 +149,9 @@ builtins-allowed-modules = ["types"]
 "tests/conftest.py" = ["D103"]
 # Scripts are operator-facing command-line tools; stdout is their interface.
 "scripts/**" = ["T20", "D103"]
+# Streamlit pages are scripts; page modules are interaction surfaces.
+"dashboard/pages/**" = ["D100", "D103", "T20"]
+"dashboard/app/**" = ["T20"]
 
 # ---------------------------------------------------------------------------
 # mypy — CODING_STANDARDS.md §3
@@ -160,7 +163,7 @@ strict = true
 # Check the package tree under src/, not the `src` directory itself — naming
 # the package path avoids the duplicate-module error mypy raises when both
 # `src.spc_platform` and the installed `spc_platform` are visible.
-files = ["src/spc_platform", "tests", "scripts"]
+files = ["src/spc_platform", "tests", "scripts", "dashboard"]
 exclude = ["(?x)(^|/)tests/factories/"]
 # Derive module names from the repository root rather than from the nearest
 # directory without an ``__init__.py``. Without this, every ``conftest.py`` in
@@ -199,6 +202,12 @@ ignore_missing_imports = true
 module = ["statsmodels.*"]
 ignore_missing_imports = true
 
+# Plotly and Streamlit ship no usable stubs for the surfaces we call; confined
+# to dashboard/ so the statistical core stays strictly typed.
+[[tool.mypy.overrides]]
+module = ["plotly", "plotly.*", "streamlit", "streamlit.*"]
+ignore_missing_imports = true
+
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true
@@ -211,6 +220,7 @@ warn_required_dynamic_aliases = true
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "--strict-markers --strict-config -ra --import-mode=importlib"
 xfail_strict = true
 filterwarnings = [

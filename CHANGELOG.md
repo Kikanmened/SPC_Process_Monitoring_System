@@ -21,8 +21,37 @@ invalidated.
 
 ## [Unreleased]
 
-### Planned — Phase 12: Dashboard
-- Streamlit control-chart and wafer-map surfaces over the Phase 11 use cases
+### Planned — Phase 13: Reporting, excursion workflow, and audit packages
+- Deterministic HTML/PDF reports with provenance headers
+- Excursion workflow closure and audit package assembly
+
+---
+
+## [0.12.0] — 2026-08-07
+
+**Phase 12 — Dashboard.** Streamlit screens render application view models
+only; Plotly wafer maps and Matplotlib static export share one `WaferMapView`
+(ADR-0018). Spec and control limits use distinct visual treatments.
+
+### Added
+
+- Application view models: `ChartView`, enriched `WaferMapView`, alarm queue,
+  line overview, tool comparison
+- Use cases: `build_chart_view`, `build_alarm_queue`, `build_line_overview`,
+  `compare_tools`; `get_wafer_map` applies colour-scale limits and the 5 000
+  marker budget with labelled aggregation (FR-S06)
+- `analytics/comparison/` — Welch's t-test for matched tool/chamber groups
+  (FR-T01)
+- Streamlit app under `dashboard/` with eight screens, theme tokens, and
+  `make demo`
+- Dual-render and no-analytics unit tests; wafer-map performance budget test
+
+### Notes
+
+- Trends screen states Module 5 KPIs are proposed and refuses invented series
+- Site SSO remains Phase 14; report/PDF generation remains Phase 13
+- Lockfile bumps transitive `gitpython` to 3.1.58 (Streamlit dependency) for
+  the security gate
 
 ---
 

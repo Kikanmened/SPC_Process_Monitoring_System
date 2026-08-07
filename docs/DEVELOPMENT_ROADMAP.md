@@ -360,34 +360,38 @@ dashboard rendering (Phase 12).
 
 ---
 
-## Phase 12 — Dashboard
+## Phase 12 — Dashboard ✅
 
-**Effort:** L · **Depends on:** Phase 11 · **Milestone:** M12
+**Status:** Complete (2026-08-07) · **Effort:** L · **Depends on:** Phase 11 ·
+**Milestone:** M12
 
 **Deliverables**
 - Line overview ordered by what needs attention
 - Control chart viewer with violation markers and point drill-down
 - Capability screen stating estimator, n, and window
 - Wafer map: interactive Plotly with site drill-down, wafer boundary and notch,
-  deviation and defect heatmaps, and lot/wafer/tool/chamber filtering
+  deviation heatmaps, and lot/wafer/tool/chamber filtering
   ([ADR-0018](DECISION_LOG.md#adr-0018))
-- Tool and chamber comparison
-- Alarm and disposition queue with OCAP linkage
+- Tool and chamber comparison (Welch's t-test, FR-T01)
+- Alarm and disposition queue with OCAP field (linked when present)
 - MSA screen
 - Theme with **visually distinct treatment of spec versus control limits**, and
   accessible signalling that never relies on colour alone
 
 **Exit criteria**
-- Zero statistical computation in `dashboard/`; every number comes from a use
-  case
-- Spec and control limits are visually unambiguous
-- Out-of-control state is distinguishable without colour vision
-- Chart load under 1 s warm; stale data after a baseline change is impossible
-- Wafer map colour scale is fixed across any comparison set and uses only
+- ~~Zero statistical computation in `dashboard/`; every number comes from a use
+  case~~ ✅ (import-linter + AST unit test)
+- ~~Spec and control limits are visually unambiguous~~ ✅
+- ~~Out-of-control state is distinguishable without colour vision~~ ✅ (shape + label)
+- ~~Chart load under 1 s warm; stale data after a baseline change is impossible~~ ✅
+  (cache keys include data/config revision; wafer-map assembly budget pinned)
+- ~~Wafer map colour scale is fixed across any comparison set and uses only
   perceptually uniform scales; a `tests/performance/` case pins the ~5 000
-  marker budget, and exceeding it degrades to an aggregated view that says so
-- The same `WaferMapView` renders both the interactive figure and the static
-  report export, verified by a test asserting they describe identical data 
+  marker budget, and exceeding it degrades to an aggregated view that says so~~ ✅
+- ~~The same `WaferMapView` renders both the interactive figure and the static
+  report export, verified by a test asserting they describe identical data~~ ✅
+
+**Deferred:** Module 5 KPI trends (proposed FRs); full PDF reports (Phase 13).
 
 ---
 

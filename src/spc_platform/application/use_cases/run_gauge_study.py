@@ -35,7 +35,9 @@ def run_gauge_study(  # noqa: PLR0913 — use-case boundary parameters
     *,
     actor: ActorId,
     measurements: FloatArray,
-    bands: AcceptanceBands,
+    acceptable_percent: float,
+    marginal_percent: float,
+    minimum_distinct_categories: int,
     tolerance: float | None = None,
     reason: str = "",
 ) -> GaugeStudyOutcome:
@@ -43,8 +45,15 @@ def run_gauge_study(  # noqa: PLR0913 — use-case boundary parameters
 
     Study design is supplied by the caller for v1 (no gauge-study repository).
     ``measurements`` must be shape ``(parts, operators, replicates)``.
+    Acceptance bands are built here so presentation adapters never import
+    ``analytics.msa``.
     """
     services.auth.require(actor, ProtectedAction.RUN_GAUGE_STUDY)
+    bands = AcceptanceBands(
+        acceptable_percent=acceptable_percent,
+        marginal_percent=marginal_percent,
+        minimum_distinct_categories=minimum_distinct_categories,
+    )
     array = np.asarray(measurements, dtype=np.float64)
     study = GaugeStudy(measurements=array, tolerance=tolerance)
     result = gauge_rr_anova(study)

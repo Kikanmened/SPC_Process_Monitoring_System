@@ -10,7 +10,6 @@ from typing import Annotated
 import numpy as np
 import typer
 
-from spc_platform.analytics.msa import AcceptanceBands
 from spc_platform.application.context import ApplicationServices
 from spc_platform.application.use_cases import (
     acknowledge_violation,
@@ -251,17 +250,14 @@ def create_cli(  # noqa: PLR0915 — registers the seven use-case commands
     ) -> None:
         """Run a crossed gauge R&R study from a JSON payload file."""
         payload = json.loads(measurements_file.read_text(encoding="utf-8"))
-        bands = AcceptanceBands(
-            acceptable_percent=acceptable_percent,
-            marginal_percent=marginal_percent,
-            minimum_distinct_categories=minimum_distinct_categories,
-        )
         try:
             outcome = run_gauge_study(
                 _services(ctx),
                 actor=_actor(ctx),
                 measurements=np.asarray(payload, dtype=np.float64),
-                bands=bands,
+                acceptable_percent=acceptable_percent,
+                marginal_percent=marginal_percent,
+                minimum_distinct_categories=minimum_distinct_categories,
                 tolerance=tolerance,
             )
         except SPCPlatformError as exc:
@@ -303,22 +299,24 @@ def create_cli(  # noqa: PLR0915 — registers the seven use-case commands
         typer.echo(
             json.dumps(
                 {
-                    "parameter_id": view.parameter_id,
-                    "lot_id": view.lot_id,
-                    "wafer_id": view.wafer_id,
+                    "parameter_id": str(view.parameter_id),
+                    "lot_id": str(view.lot_id),
+                    "wafer_id": str(view.wafer_id),
+                    "n_sites_total": view.n_sites_total,
+                    "is_aggregated": view.is_aggregated,
                     "sites": [
                         {
                             "site_id": site.site_id,
                             "x_mm": site.x_mm,
                             "y_mm": site.y_mm,
                             "value": site.value,
-                            "unit": site.unit,
+                            "unit": str(site.unit),
                         }
                         for site in view.sites
                     ],
                     "spatial_signature": None
-                    if view.spatial is None
-                    else view.spatial.signature.value,
+                    if view.spatial_signature is None
+                    else view.spatial_signature.value,
                 }
             )
         )

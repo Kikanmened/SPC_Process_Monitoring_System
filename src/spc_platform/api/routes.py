@@ -5,7 +5,6 @@ from __future__ import annotations
 import numpy as np
 from fastapi import APIRouter
 
-from spc_platform.analytics.msa import AcceptanceBands
 from spc_platform.api.deps import ActorDep, ServicesDep
 from spc_platform.api.schemas import (
     AcknowledgeViolationRequest,
@@ -170,16 +169,13 @@ def post_gauge_study(
     actor: ActorDep,
 ) -> GaugeStudyResponse:
     """Run a crossed gauge R&R study."""
-    bands = AcceptanceBands(
-        acceptable_percent=body.acceptable_percent,
-        marginal_percent=body.marginal_percent,
-        minimum_distinct_categories=body.minimum_distinct_categories,
-    )
     outcome = run_gauge_study(
         services,
         actor=actor,
         measurements=np.asarray(body.measurements, dtype=np.float64),
-        bands=bands,
+        acceptable_percent=body.acceptable_percent,
+        marginal_percent=body.marginal_percent,
+        minimum_distinct_categories=body.minimum_distinct_categories,
         tolerance=body.tolerance,
         reason=body.reason,
     )
@@ -208,19 +204,19 @@ def post_wafer_map(
         classify_spatial=body.classify_spatial,
     )
     return WaferMapResponse(
-        parameter_id=view.parameter_id,
-        lot_id=view.lot_id,
-        wafer_id=view.wafer_id,
+        parameter_id=str(view.parameter_id),
+        lot_id=str(view.lot_id),
+        wafer_id=str(view.wafer_id),
         sites=[
             WaferSiteResponse(
                 site_id=site.site_id,
                 x_mm=site.x_mm,
                 y_mm=site.y_mm,
                 value=site.value,
-                unit=site.unit,
+                unit=str(site.unit),
             )
             for site in view.sites
         ],
-        spatial_signature=None if view.spatial is None else view.spatial.signature.value,
-        spatial_statistic=None if view.spatial is None else view.spatial.statistic,
+        spatial_signature=None if view.spatial_signature is None else view.spatial_signature.value,
+        spatial_statistic=view.spatial_statistic,
     )

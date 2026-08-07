@@ -2,7 +2,7 @@
 
 **Document owner:** Project lead
 **Status:** Living document — updated at the close of every working session
-**Last updated:** 2026-08-06
+**Last updated:** 2026-08-07
 
 The current state of the project in one place. This is the document to read
 first when resuming work after a break, and the one the AI agent should consult
@@ -17,12 +17,12 @@ release history see [CHANGELOG.md](../CHANGELOG.md).
 
 | | |
 |---|---|
-| **Current phase** | Phase 12 — Dashboard |
-| **Phases complete** | 11 of 15 |
-| **Application code** | Domain through pipelines, seven application use cases, FastAPI, and Typer CLI |
+| **Current phase** | Phase 13 — Reporting, excursion workflow, and audit packages |
+| **Phases complete** | 12 of 15 |
+| **Application code** | Domain through pipelines, use cases, FastAPI, CLI, and Streamlit dashboard |
 | **Repository** | Initialised; see git remotes for hosting |
-| **Last milestone** | M11 — application use cases, API, and CLI (2026-08-06) |
-| **Next milestone** | M12 — Streamlit dashboard |
+| **Last milestone** | M12 — Streamlit dashboard (2026-08-07) |
+| **Next milestone** | M13 — reporting and audit packages |
 
 ```
 Phase  1 ████████████ Structure              complete
@@ -36,8 +36,8 @@ Phase  8 ████████████ Data generator         complete
 Phase  9 ████████████ Analytics engine       complete
 Phase 10 ████████████ Pipelines + storage    complete
 Phase 11 ████████████ Application + API      complete
-Phase 12 ░░░░░░░░░░░░ Dashboard              next
-Phase 13 ░░░░░░░░░░░░ Reporting + audit
+Phase 12 ████████████ Dashboard              complete
+Phase 13 ░░░░░░░░░░░░ Reporting + audit      next
 Phase 14 ░░░░░░░░░░░░ Deployment
 Phase 15 ░░░░░░░░░░░░ Advanced analytics (stretch)
 ```
@@ -352,6 +352,19 @@ capability refusal.
 
 **Exit criteria met.** No message bus. Site SSO remains Phase 14.
 
+### Phase 12 — Dashboard · 2026-08-07
+
+Streamlit screens over application view models. Plotly wafer maps and Matplotlib
+static export share one `WaferMapView`. Spec limits are dashed; control limits
+are solid; OOC uses shape and label. Marker budget 5 000 with labelled
+aggregation. Tool comparison uses Welch's t-test (FR-T01). Trends refuse
+proposed Module 5 KPIs.
+
+**Verified:** dashboard does not import analytics; dual-render test; performance
+budget for wafer-map assembly; `make demo` launches the app.
+
+**Exit criteria met.** PDF reports and notification digests remain Phase 13.
+
 ## 3. Decisions settled
 
 Twenty-two architecture decisions are recorded in
@@ -373,7 +386,7 @@ that follows:
 
 ## 4. Open questions
 
-Tracked here until they become decisions. None currently blocks Phase 12.
+Tracked here until they become decisions. None currently blocks Phase 13.
 
 | # | Question | Needed by | Notes |
 |---|---|---|---|
@@ -403,15 +416,15 @@ Full register in [RISK_REGISTER.md](RISK_REGISTER.md). Requiring attention now:
 
 ## 6. Next actions
 
-Phase 12, in order:
+Phase 13, in order:
 
-1. Streamlit line overview ordered by attention
-2. Control chart viewer with violation markers (Plotly)
-3. Capability screen stating estimator, n, and window
-4. Wafer map rendering over the `get_wafer_map` DTO (ADR-0018)
+1. Report templates (SPC summary, capability, MSA, excursion) with provenance
+2. Deterministic HTML → PDF rendering
+3. Excursion workflow closure with 8D/CAPA references
+4. Audit package assembly
 
-**Phase 12 exit check:** dashboard screens call application use cases only;
-spec versus control limits remain visually distinct.
+**Phase 13 exit check:** reports regenerate identically from data + code +
+config revisions; provenance header on every artefact.
 
 ## 7. Metrics
 
@@ -419,14 +432,14 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 | Metric | Current | Target |
 |---|---|---|
-| Phases complete | 11 / 15 | 15 |
+| Phases complete | 12 / 15 | 15 |
 | Cursor rules | 7 | 7 |
 | Documentation files | 30 | — |
 | Identified requirements | 74 FR + 43 NFR | Traced to tests |
 | Proposed requirements awaiting approval | 20 | Approved or rejected (Q5) |
 | Modules specified | 10 / 10 | 10 |
-| Modules with code landed | 6 / 10 (1 ingest, 2 preprocess, 3 SPC, 4 capability/MSA, 6 spatial/scoring, 10 utilities + audit/auth ports) | 10 |
-| Tests | 850+ across six tiers (Postgres cases skipped without URL) | — |
+| Modules with code landed | 7 / 10 (+ Module 9 screens; Module 7 comparison started for FR-T01) | 10 |
+| Tests | 870+ across six tiers (Postgres cases skipped without URL) | — |
 | Statistical checks on the default dataset | 153 passed, 3 characteristics unchecked | Every characteristic checked |
 | Reference-validated statistical cases | Full analytics suite (constants, charts, rules, capability, MSA, ARL, detection power, spatial) | Maintained |
 | Type coverage | 100% under `mypy --strict` | 100% |
@@ -438,6 +451,19 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 Newest first. One entry per working session, recording what changed and what
 the next session should pick up.
+
+### 2026-08-07 — Phase 12: Dashboard
+
+Closed the presentation layer for operator screens. Streamlit multipage app
+calls application view builders only; import-linter denies `dashboard` →
+`analytics`. Wafer maps fix colour limits across comparison sets, use
+viridis/cividis/diverging scales, and aggregate above 5 000 markers with an
+on-screen statement. Plotly and Matplotlib share one `WaferMapView`.
+
+**Verified:** dual-render unit test, no-analytics import test, wafer-map
+performance budget, `make check` green at 0.12.0. Launch with `make demo`.
+
+**Next:** Phase 13 — reporting, excursion workflow, and audit packages.
 
 ### 2026-08-06 — Phase 11: Application layer, API, and CLI
 

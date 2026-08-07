@@ -9,6 +9,7 @@
 [importlinter]
 root_packages =
     spc_platform
+    dashboard
 include_external_packages = True
 
 ; ---------------------------------------------------------------------------
@@ -189,6 +190,14 @@ source_modules =
     spc_platform
 forbidden_modules =
     dashboard
+
+[importlinter:contract:dashboard-no-analytics]
+name = Dashboard never imports analytics
+type = forbidden
+source_modules =
+    dashboard
+forbidden_modules =
+    spc_platform.analytics
 
 ; ---------------------------------------------------------------------------
 ; Simulation is an instrument, not a dependency — ADR-0021
