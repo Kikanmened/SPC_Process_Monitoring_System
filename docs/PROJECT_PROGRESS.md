@@ -17,12 +17,12 @@ release history see [CHANGELOG.md](../CHANGELOG.md).
 
 | | |
 |---|---|
-| **Current phase** | Phase 13 — Reporting, excursion workflow, and audit packages |
-| **Phases complete** | 12 of 15 |
-| **Application code** | Domain through pipelines, use cases, FastAPI, CLI, and Streamlit dashboard |
+| **Current phase** | Phase 14 — Deployment and operations |
+| **Phases complete** | 13 of 15 |
+| **Application code** | Domain through pipelines, use cases, API/CLI, dashboard, reports |
 | **Repository** | Initialised; see git remotes for hosting |
-| **Last milestone** | M12 — Streamlit dashboard (2026-08-07) |
-| **Next milestone** | M13 — reporting and audit packages |
+| **Last milestone** | M13 — reporting and audit packages (2026-08-10) |
+| **Next milestone** | M14 — deployable stack |
 
 ```
 Phase  1 ████████████ Structure              complete
@@ -37,8 +37,8 @@ Phase  9 ████████████ Analytics engine       complete
 Phase 10 ████████████ Pipelines + storage    complete
 Phase 11 ████████████ Application + API      complete
 Phase 12 ████████████ Dashboard              complete
-Phase 13 ░░░░░░░░░░░░ Reporting + audit      next
-Phase 14 ░░░░░░░░░░░░ Deployment
+Phase 13 ████████████ Reporting + audit      complete
+Phase 14 ░░░░░░░░░░░░ Deployment             next
 Phase 15 ░░░░░░░░░░░░ Advanced analytics (stretch)
 ```
 
@@ -363,7 +363,19 @@ proposed Module 5 KPIs.
 **Verified:** dashboard does not import analytics; dual-render test; performance
 budget for wafer-map assembly; `make demo` launches the app.
 
-**Exit criteria met.** PDF reports and notification digests remain Phase 13.
+**Exit criteria met.**
+
+### Phase 13 — Reporting, excursion workflow, and audit packages · 2026-08-10
+
+Jinja2 HTML reports with provenance headers; WeasyPrint PDF when native
+libraries are available. Excursion lifecycle from detection through closure
+with mandatory disposition and 8D/CAPA. Digested notifications and control-plan
+OCAP on the alarm queue. Audit packages are zip archives with SHA-256 digests.
+
+**Verified:** FR-RP03 HTML regeneration contract; provenance on every artefact
+type; e2e violation → excursion summary; `make check` green at 0.13.0.
+
+**Exit criteria met.** Containerised PDF runtime and SSO remain Phase 14.
 
 ## 3. Decisions settled
 
@@ -386,7 +398,7 @@ that follows:
 
 ## 4. Open questions
 
-Tracked here until they become decisions. None currently blocks Phase 13.
+Tracked here until they become decisions. None currently blocks Phase 14.
 
 | # | Question | Needed by | Notes |
 |---|---|---|---|
@@ -416,15 +428,15 @@ Full register in [RISK_REGISTER.md](RISK_REGISTER.md). Requiring attention now:
 
 ## 6. Next actions
 
-Phase 13, in order:
+Phase 14, in order:
 
-1. Report templates (SPC summary, capability, MSA, excursion) with provenance
-2. Deterministic HTML → PDF rendering
-3. Excursion workflow closure with 8D/CAPA references
-4. Audit package assembly
+1. Multi-stage Docker images and Compose profiles
+2. Scheduled jobs (ingest, evaluate, report, archive) with idempotency proof
+3. Health checks, metrics, log shipping, runbooks
+4. Backup/restore drill
 
-**Phase 13 exit check:** reports regenerate identically from data + code +
-config revisions; provenance header on every artefact.
+**Phase 14 exit check:** one command brings up a working stack with demo data;
+restore from backup is tested.
 
 ## 7. Metrics
 
@@ -432,13 +444,13 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 | Metric | Current | Target |
 |---|---|---|
-| Phases complete | 12 / 15 | 15 |
+| Phases complete | 13 / 15 | 15 |
 | Cursor rules | 7 | 7 |
 | Documentation files | 30 | — |
 | Identified requirements | 74 FR + 43 NFR | Traced to tests |
 | Proposed requirements awaiting approval | 20 | Approved or rejected (Q5) |
 | Modules specified | 10 / 10 | 10 |
-| Modules with code landed | 7 / 10 (+ Module 9 screens; Module 7 comparison started for FR-T01) | 10 |
+| Modules with code landed | 8 / 10 (+ Module 9 reports/packages; Module 7 excursion lifecycle) | 10 |
 | Tests | 870+ across six tiers (Postgres cases skipped without URL) | — |
 | Statistical checks on the default dataset | 153 passed, 3 characteristics unchecked | Every characteristic checked |
 | Reference-validated statistical cases | Full analytics suite (constants, charts, rules, capability, MSA, ARL, detection power, spatial) | Maintained |
@@ -451,6 +463,18 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 Newest first. One entry per working session, recording what changed and what
 the next session should pick up.
+
+### 2026-08-10 — Phase 13: Reporting, excursion workflow, and audit packages
+
+Closed report artefacts and the excursion lifecycle. Jinja2 HTML reports carry
+data/code/config revisions; WeasyPrint PDF is optional when system libraries
+are present. Excursions close only with disposition plus 8D/CAPA. Digests and
+audit-package zips are audited.
+
+**Verified:** regeneration contract, provenance headers, e2e excursion summary,
+`make check` green at 0.13.0.
+
+**Next:** Phase 14 — deployment and operations.
 
 ### 2026-08-07 — Phase 12: Dashboard
 

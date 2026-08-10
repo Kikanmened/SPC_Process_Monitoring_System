@@ -4,7 +4,7 @@
 **Depends on:** Modules 3, 4, 5, 6, 7, 8, 10
 **Depended on by:** nothing — presentation is always a leaf
 **Requirement coverage:** FR-S01, FR-S03 – FR-S06, FR-A01, FR-A05, FR-A06, FR-RP01 – FR-RP05; NFR-P03, NFR-P04, NFR-U01 – NFR-U06
-**Delivered in:** Phase 12 (screens), Phase 13 (reports and packages) · **Status:** Screens implemented; reports and notification digests pending Phase 13
+**Delivered in:** Phase 12 (screens), Phase 13 (reports and packages) · **Status:** Screens, reports, digests, and audit packages implemented; PDF needs WeasyPrint system libraries in the runtime image (Phase 14)
 
 ---
 

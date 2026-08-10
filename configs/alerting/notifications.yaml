@@ -1,0 +1,5 @@
+# Digested notification policy (FR-A05, FR-A06).
+# One digest per recipient per interval — never one message per violation.
+digest_interval_seconds: 900
+escalate_unacknowledged_after_seconds: 3600
+default_recipient: shift.lead@local

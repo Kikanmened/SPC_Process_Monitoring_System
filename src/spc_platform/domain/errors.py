@@ -24,3 +24,11 @@ class DomainError(Exception):
 
 class DomainInvariantError(DomainError):
     """A construction-time invariant failed (slot range, limit ordering, …)."""
+
+
+class DispositionRequiredError(DomainError):
+    """Closure attempted without a disposition and reason (FR-A03, AC-B2)."""
+
+
+class UnknownDispositionError(DomainError):
+    """A disposition outside the permitted set."""

@@ -21,9 +21,34 @@ invalidated.
 
 ## [Unreleased]
 
-### Planned — Phase 13: Reporting, excursion workflow, and audit packages
-- Deterministic HTML/PDF reports with provenance headers
-- Excursion workflow closure and audit package assembly
+### Planned — Phase 14: Deployment and operations
+
+---
+
+## [0.13.0] — 2026-08-10
+
+**Phase 13 — Reporting, excursion workflow, and audit packages.** Jinja2 HTML
+reports (WeasyPrint PDF when system libraries allow) carry provenance headers;
+excursion lifecycle closes only with disposition plus 8D/CAPA; audit packages
+are self-contained zip archives.
+
+### Added
+
+- Report use cases and Jinja templates: SPC summary, capability study, MSA,
+  excursion summary (FR-RP01 – FR-RP03, FR-RP05)
+- `assemble_audit_package` zip with chart data, extract, limits, dispositions
+  (FR-RP04)
+- Excursion domain and use cases: open, contain, investigate, disposition mark,
+  close with CAPA/8D (FR-A02 – FR-A04, FR-A07)
+- Digested notifications via `Notifier` port; OCAP resolved from control plans
+  on the alarm queue (FR-A01, FR-A04 – FR-A06)
+- Contract tests for byte-identical HTML regeneration; e2e excursion → summary
+
+### Notes
+
+- PDF rendering requires WeasyPrint native libraries; HTML is the deterministic
+  FR-RP03 artefact and always available
+- Site SSO remains Phase 14
 
 ---
 

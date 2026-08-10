@@ -117,3 +117,19 @@ class PipelinePublishError(SPCPlatformError):
 
 class ViewDataUnavailableError(SPCPlatformError):
     """A view model could not be built; the UI must render the reason, not invent data."""
+
+
+class DispositionRequiredError(SPCPlatformError):
+    """Closure attempted without a disposition and reason (FR-A03)."""
+
+
+class ExcursionStateError(SPCPlatformError):
+    """An excursion transition is illegal for the current lifecycle state."""
+
+
+class ReportRenderError(SPCPlatformError):
+    """A report artefact could not be rendered (missing template or PDF engine)."""
+
+
+class NotificationDispatchError(SPCPlatformError):
+    """The notification transport failed; must be recorded, never dropped silently."""

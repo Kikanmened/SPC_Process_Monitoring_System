@@ -1,6 +1,8 @@
-"""REST routes for the seven Phase 11 use cases."""
+"""REST routes for application use cases."""
 
 from __future__ import annotations
+
+import hashlib
 
 import numpy as np
 from fastapi import APIRouter
@@ -9,12 +11,21 @@ from spc_platform.api.deps import ActorDep, ServicesDep
 from spc_platform.api.schemas import (
     AcknowledgeViolationRequest,
     AcknowledgeViolationResponse,
+    AuditPackageRequest,
+    AuditPackageResponse,
     CapabilityReportRequest,
     CapabilityReportResponse,
+    CloseExcursionRequest,
+    DispatchNotificationsRequest,
+    DispatchNotificationsResponse,
     EvaluateLotRequest,
     EvaluateLotResponse,
+    ExcursionResponse,
     GaugeStudyRequest,
     GaugeStudyResponse,
+    GenerateReportRequestBody,
+    GenerateReportResponse,
+    OpenExcursionRequest,
     RecomputeBaselineRequest,
     RecomputeBaselineResponse,
     RecordDispositionRequest,
@@ -23,17 +34,28 @@ from spc_platform.api.schemas import (
     WaferMapResponse,
     WaferSiteResponse,
 )
+from spc_platform.application.ports.report_renderer import RenderTarget
 from spc_platform.application.use_cases import (
+    GenerateReportRequest,
     acknowledge_violation,
+    assemble_audit_package,
+    close_excursion,
+    dispatch_notifications,
     evaluate_lot,
     generate_capability_report,
+    generate_report,
     get_wafer_map,
+    open_excursion,
     recompute_baseline,
     record_disposition,
     run_gauge_study,
 )
 from spc_platform.common.errors import SPCPlatformError
+from spc_platform.domain.enums import ReportType
 from spc_platform.domain.ids import (
+    CapaId,
+    EightDId,
+    ExcursionId,
     LotId,
     OcapId,
     ParameterId,
@@ -219,4 +241,133 @@ def post_wafer_map(
         ],
         spatial_signature=None if view.spatial_signature is None else view.spatial_signature.value,
         spatial_statistic=view.spatial_statistic,
+    )
+
+
+@router.post("/reports/generate", response_model=GenerateReportResponse)
+def post_generate_report(
+    body: GenerateReportRequestBody,
+    services: ServicesDep,
+    actor: ActorDep,
+) -> GenerateReportResponse:
+    """Render an HTML (or PDF) report artefact with provenance."""
+    artefact = generate_report(
+        services,
+        actor=actor,
+        request=GenerateReportRequest(
+            report_type=ReportType(body.report_type),
+            parameter_id=ParameterId(body.parameter_id),
+            product_id=None if body.product_id is None else ProductId(body.product_id),
+            lot_id=None if body.lot_id is None else LotId(body.lot_id),
+            wafer_id=None if body.wafer_id is None else WaferId(body.wafer_id),
+            excursion_id=None if body.excursion_id is None else ExcursionId(body.excursion_id),
+            window_start=body.window_start,
+            window_end=body.window_end,
+            target=RenderTarget(body.target),
+            include_wafer_map=body.include_wafer_map,
+        ),
+    )
+    text = artefact.content.decode("utf-8") if artefact.target is RenderTarget.HTML else None
+    return GenerateReportResponse(
+        report_type=artefact.report_type.value,
+        target=artefact.target.value,
+        media_type=artefact.media_type,
+        content_text=text,
+        content_sha256=hashlib.sha256(artefact.content).hexdigest(),
+        data_revision=str(artefact.provenance.data_revision),
+        code_revision=str(artefact.provenance.code_revision),
+        config_revision=str(artefact.provenance.config_revision),
+    )
+
+
+@router.post("/excursions/open", response_model=ExcursionResponse)
+def post_open_excursion(
+    body: OpenExcursionRequest,
+    services: ServicesDep,
+    actor: ActorDep,
+) -> ExcursionResponse:
+    """Open an excursion linked to violations and OCAP."""
+    excursion = open_excursion(
+        services,
+        actor=actor,
+        parameter_id=ParameterId(body.parameter_id),
+        lot_ids=tuple(LotId(item) for item in body.lot_ids),
+        violation_ids=tuple(body.violation_ids),
+        product_id=None if body.product_id is None else ProductId(body.product_id),
+    )
+    return ExcursionResponse(
+        excursion_id=str(excursion.excursion_id),
+        state=excursion.state.value,
+        ocap_id=None if excursion.ocap_id is None else str(excursion.ocap_id),
+    )
+
+
+@router.post("/excursions/close", response_model=ExcursionResponse)
+def post_close_excursion(
+    body: CloseExcursionRequest,
+    services: ServicesDep,
+    actor: ActorDep,
+) -> ExcursionResponse:
+    """Close an excursion with an 8D or CAPA identifier."""
+    excursion = close_excursion(
+        services,
+        actor=actor,
+        excursion_id=ExcursionId(body.excursion_id),
+        capa_id=None if body.capa_id is None else CapaId(body.capa_id),
+        eight_d_id=None if body.eight_d_id is None else EightDId(body.eight_d_id),
+        reason=body.reason,
+    )
+    return ExcursionResponse(
+        excursion_id=str(excursion.excursion_id),
+        state=excursion.state.value,
+        ocap_id=None if excursion.ocap_id is None else str(excursion.ocap_id),
+        capa_id=None if excursion.capa_id is None else str(excursion.capa_id),
+        eight_d_id=None if excursion.eight_d_id is None else str(excursion.eight_d_id),
+    )
+
+
+@router.post("/audit-packages", response_model=AuditPackageResponse)
+def post_audit_package(
+    body: AuditPackageRequest,
+    services: ServicesDep,
+    actor: ActorDep,
+) -> AuditPackageResponse:
+    """Assemble a verifiable audit package."""
+    package = assemble_audit_package(
+        services,
+        actor=actor,
+        parameter_id=ParameterId(body.parameter_id),
+        product_id=ProductId(body.product_id),
+        window_start=body.window_start,
+        window_end=body.window_end,
+        lot_id=None if body.lot_id is None else LotId(body.lot_id),
+        excursion_id=None if body.excursion_id is None else ExcursionId(body.excursion_id),
+    )
+    return AuditPackageResponse(
+        content_sha256=package.content_sha256,
+        bytes=len(package.content),
+        data_revision=str(package.provenance.data_revision),
+        code_revision=str(package.provenance.code_revision),
+        config_revision=str(package.provenance.config_revision),
+    )
+
+
+@router.post("/notifications/dispatch", response_model=DispatchNotificationsResponse)
+def post_dispatch_notifications(
+    body: DispatchNotificationsRequest,
+    services: ServicesDep,
+    actor: ActorDep,
+) -> DispatchNotificationsResponse:
+    """Dispatch one digested notification for open violations."""
+    receipt = dispatch_notifications(
+        services,
+        actor=actor,
+        parameter_id=None if body.parameter_id is None else ParameterId(body.parameter_id),
+        product_id=None if body.product_id is None else ProductId(body.product_id),
+    )
+    return DispatchNotificationsResponse(
+        digest_id=receipt.digest_id,
+        recipient=receipt.recipient,
+        item_count=receipt.item_count,
+        transport=receipt.transport,
     )

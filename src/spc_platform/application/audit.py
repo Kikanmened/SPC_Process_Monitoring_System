@@ -35,6 +35,13 @@ class AuditEventType(StrEnum):
     REPORT_REFUSED = "report_refused"
     PIPELINE_RUN = "pipeline_run"
     MEASUREMENT_DATA_ACCESS = "measurement_data_access"
+    EXCURSION_OPENED = "excursion_opened"
+    EXCURSION_CONTAINED = "excursion_contained"
+    EXCURSION_INVESTIGATING = "excursion_investigating"
+    EXCURSION_DISPOSITIONED = "excursion_dispositioned"
+    EXCURSION_CLOSED = "excursion_closed"
+    NOTIFICATION_DISPATCHED = "notification_dispatched"
+    AUDIT_PACKAGE_ASSEMBLED = "audit_package_assembled"
 
 
 class AuditRecord(BaseModel):

@@ -19,6 +19,11 @@ class ProtectedAction(StrEnum):
     RUN_GAUGE_STUDY = "run_gauge_study"
     EVALUATE_LOT = "evaluate_lot"
     GET_WAFER_MAP = "get_wafer_map"
+    OPEN_EXCURSION = "open_excursion"
+    CLOSE_EXCURSION = "close_excursion"
+    GENERATE_REPORT = "generate_report"
+    ASSEMBLE_AUDIT_PACKAGE = "assemble_audit_package"
+    DISPATCH_NOTIFICATIONS = "dispatch_notifications"
 
 
 class Authorisation(Protocol):

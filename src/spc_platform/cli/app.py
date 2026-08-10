@@ -11,19 +11,29 @@ import numpy as np
 import typer
 
 from spc_platform.application.context import ApplicationServices
+from spc_platform.application.ports.report_renderer import RenderTarget
 from spc_platform.application.use_cases import (
+    GenerateReportRequest,
     acknowledge_violation,
+    assemble_audit_package,
+    close_excursion,
+    dispatch_notifications,
     evaluate_lot,
     generate_capability_report,
+    generate_report,
     get_wafer_map,
+    open_excursion,
     recompute_baseline,
     record_disposition,
     run_gauge_study,
 )
 from spc_platform.common.errors import SPCPlatformError
-from spc_platform.domain.enums import DispositionAction
+from spc_platform.domain.enums import DispositionAction, ReportType
 from spc_platform.domain.ids import (
     ActorId,
+    CapaId,
+    EightDId,
+    ExcursionId,
     LotId,
     OcapId,
     ParameterId,
@@ -33,7 +43,7 @@ from spc_platform.domain.ids import (
 from spc_platform.infrastructure.composition import LocalBundle, build_local_bundle
 
 
-def create_cli(  # noqa: PLR0915 — registers the seven use-case commands
+def create_cli(  # noqa: PLR0915 — registers use-case commands
     bundle: LocalBundle | None = None,
 ) -> typer.Typer:
     """Build a Typer app wired to ``bundle`` (or a fresh local fake stack)."""
@@ -317,6 +327,183 @@ def create_cli(  # noqa: PLR0915 — registers the seven use-case commands
                     "spatial_signature": None
                     if view.spatial_signature is None
                     else view.spatial_signature.value,
+                }
+            )
+        )
+
+    @cli.command("generate-report")
+    def cmd_generate_report(  # noqa: PLR0913, PLR0917 — CLI option surface
+        ctx: typer.Context,
+        report_type: Annotated[str, typer.Option()],
+        parameter_id: Annotated[str, typer.Option()],
+        window_start: Annotated[str | None, typer.Option()] = None,
+        window_end: Annotated[str | None, typer.Option()] = None,
+        product_id: Annotated[str | None, typer.Option()] = None,
+        lot_id: Annotated[str | None, typer.Option()] = None,
+        excursion_id: Annotated[str | None, typer.Option()] = None,
+        target: Annotated[str, typer.Option()] = "html",
+        output: Annotated[Path | None, typer.Option()] = None,
+    ) -> None:
+        """Render a report artefact (HTML by default)."""
+        try:
+            artefact = generate_report(
+                _services(ctx),
+                actor=_actor(ctx),
+                request=GenerateReportRequest(
+                    report_type=ReportType(report_type),
+                    parameter_id=ParameterId(parameter_id),
+                    product_id=None if product_id is None else ProductId(product_id),
+                    lot_id=None if lot_id is None else LotId(lot_id),
+                    excursion_id=None if excursion_id is None else ExcursionId(excursion_id),
+                    window_start=None if window_start is None else _parse_aware(window_start),
+                    window_end=None if window_end is None else _parse_aware(window_end),
+                    target=RenderTarget(target),
+                ),
+            )
+        except SPCPlatformError as exc:
+            typer.echo(json.dumps({"error": type(exc).__name__, "message": str(exc)}))
+            raise typer.Exit(code=1) from exc
+        if output is not None:
+            output.write_bytes(artefact.content)
+        typer.echo(
+            json.dumps(
+                {
+                    "report_type": artefact.report_type.value,
+                    "target": artefact.target.value,
+                    "bytes": len(artefact.content),
+                    "data_revision": str(artefact.provenance.data_revision),
+                    "code_revision": str(artefact.provenance.code_revision),
+                    "config_revision": str(artefact.provenance.config_revision),
+                }
+            )
+        )
+
+    @cli.command("open-excursion")
+    def cmd_open_excursion(
+        ctx: typer.Context,
+        parameter_id: Annotated[str, typer.Option()],
+        lot_id: Annotated[str, typer.Option()],
+        violation_ids: Annotated[str, typer.Option(help="Comma-separated violation ids")],
+        product_id: Annotated[str | None, typer.Option()] = None,
+    ) -> None:
+        """Open an excursion from one or more violations."""
+        try:
+            excursion = open_excursion(
+                _services(ctx),
+                actor=_actor(ctx),
+                parameter_id=ParameterId(parameter_id),
+                lot_ids=(LotId(lot_id),),
+                violation_ids=tuple(
+                    item.strip() for item in violation_ids.split(",") if item.strip()
+                ),
+                product_id=None if product_id is None else ProductId(product_id),
+            )
+        except SPCPlatformError as exc:
+            typer.echo(json.dumps({"error": type(exc).__name__, "message": str(exc)}))
+            raise typer.Exit(code=1) from exc
+        typer.echo(
+            json.dumps(
+                {
+                    "excursion_id": str(excursion.excursion_id),
+                    "state": excursion.state.value,
+                    "ocap_id": None if excursion.ocap_id is None else str(excursion.ocap_id),
+                }
+            )
+        )
+
+    @cli.command("close-excursion")
+    def cmd_close_excursion(
+        ctx: typer.Context,
+        excursion_id: Annotated[str, typer.Option()],
+        capa_id: Annotated[str | None, typer.Option()] = None,
+        eight_d_id: Annotated[str | None, typer.Option()] = None,
+        reason: Annotated[str, typer.Option()] = "",
+    ) -> None:
+        """Close an excursion with CAPA or 8D reference."""
+        try:
+            excursion = close_excursion(
+                _services(ctx),
+                actor=_actor(ctx),
+                excursion_id=ExcursionId(excursion_id),
+                capa_id=None if capa_id is None else CapaId(capa_id),
+                eight_d_id=None if eight_d_id is None else EightDId(eight_d_id),
+                reason=reason,
+            )
+        except SPCPlatformError as exc:
+            typer.echo(json.dumps({"error": type(exc).__name__, "message": str(exc)}))
+            raise typer.Exit(code=1) from exc
+        typer.echo(
+            json.dumps(
+                {
+                    "excursion_id": str(excursion.excursion_id),
+                    "state": excursion.state.value,
+                    "capa_id": None if excursion.capa_id is None else str(excursion.capa_id),
+                    "eight_d_id": None
+                    if excursion.eight_d_id is None
+                    else str(excursion.eight_d_id),
+                }
+            )
+        )
+
+    @cli.command("assemble-audit-package")
+    def cmd_assemble_audit_package(  # noqa: PLR0913, PLR0917 — CLI option surface
+        ctx: typer.Context,
+        parameter_id: Annotated[str, typer.Option()],
+        product_id: Annotated[str, typer.Option()],
+        window_start: Annotated[str, typer.Option()],
+        window_end: Annotated[str, typer.Option()],
+        output: Annotated[Path, typer.Option()],
+        lot_id: Annotated[str | None, typer.Option()] = None,
+        excursion_id: Annotated[str | None, typer.Option()] = None,
+    ) -> None:
+        """Write a self-contained audit package zip."""
+        try:
+            package = assemble_audit_package(
+                _services(ctx),
+                actor=_actor(ctx),
+                parameter_id=ParameterId(parameter_id),
+                product_id=ProductId(product_id),
+                window_start=_parse_aware(window_start),
+                window_end=_parse_aware(window_end),
+                lot_id=None if lot_id is None else LotId(lot_id),
+                excursion_id=None if excursion_id is None else ExcursionId(excursion_id),
+            )
+        except SPCPlatformError as exc:
+            typer.echo(json.dumps({"error": type(exc).__name__, "message": str(exc)}))
+            raise typer.Exit(code=1) from exc
+        output.write_bytes(package.content)
+        typer.echo(
+            json.dumps(
+                {
+                    "content_sha256": package.content_sha256,
+                    "bytes": len(package.content),
+                    "path": str(output),
+                }
+            )
+        )
+
+    @cli.command("dispatch-notifications")
+    def cmd_dispatch_notifications(
+        ctx: typer.Context,
+        parameter_id: Annotated[str | None, typer.Option()] = None,
+    ) -> None:
+        """Dispatch one digested notification for open violations."""
+        try:
+            receipt = dispatch_notifications(
+                _services(ctx),
+                actor=_actor(ctx),
+                parameter_id=None if parameter_id is None else ParameterId(parameter_id),
+            )
+        except SPCPlatformError as exc:
+            typer.echo(json.dumps({"error": type(exc).__name__, "message": str(exc)}))
+            raise typer.Exit(code=1) from exc
+        typer.echo(
+            json.dumps(
+                {
+                    "digest_id": receipt.digest_id,
+                    "recipient": receipt.recipient,
+                    "item_count": receipt.item_count,
+                    "transport": receipt.transport,
                 }
             )
         )

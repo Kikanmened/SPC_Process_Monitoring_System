@@ -1,0 +1,38 @@
+{% extends "base.html.j2" %}
+{% block body %}
+<section>
+  <h2>Excursion summary</h2>
+  <div class="narrative">
+    {% for line in narrative %}<p>{{ line }}</p>{% endfor %}
+  </div>
+  <dl>
+    <dt>excursion_id</dt><dd>{{ sections.excursion_id }}</dd>
+    <dt>state</dt><dd>{{ sections.state }}</dd>
+    <dt>ocap_id</dt><dd>{{ sections.ocap_id or "—" }}</dd>
+    <dt>capa_id</dt><dd>{{ sections.capa_id or "—" }}</dd>
+    <dt>eight_d_id</dt><dd>{{ sections.eight_d_id or "—" }}</dd>
+  </dl>
+  <table class="stats">
+    <thead><tr><th>Statistic</th><th>Value</th><th>n</th><th>Window</th><th>Estimator</th></tr></thead>
+    <tbody>
+      {% for stat in statistics %}
+      <tr>
+        <td>{{ stat.label }}</td>
+        <td>{{ stat.value }}</td>
+        <td>{{ stat.n }}</td>
+        <td>{{ stat.window_label }}</td>
+        <td>{{ stat.estimator or "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if sections.get("dispositions") %}
+  <h3>Dispositions</h3>
+  <ul>
+    {% for item in sections.dispositions %}
+    <li>{{ item.lot_id }} {{ item.action }} by {{ item.actor }} — {{ item.reason }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endblock %}

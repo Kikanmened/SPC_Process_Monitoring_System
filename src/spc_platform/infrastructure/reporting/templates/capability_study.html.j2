@@ -1,0 +1,26 @@
+{% extends "base.html.j2" %}
+{% block body %}
+<section>
+  <h2>Capability study</h2>
+  <div class="narrative">
+    {% for line in narrative %}<p>{{ line }}</p>{% endfor %}
+  </div>
+  <table class="stats">
+    <thead><tr><th>Statistic</th><th>Value</th><th>n</th><th>Window</th><th>Estimator</th></tr></thead>
+    <tbody>
+      {% for stat in statistics %}
+      <tr>
+        <td>{{ stat.label }}</td>
+        <td>{{ stat.value }}</td>
+        <td>{{ stat.n }}</td>
+        <td>{{ stat.window_label }}</td>
+        <td>{{ stat.estimator or "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if sections.get("stability") %}
+  <p>Stability: {{ sections.stability }}</p>
+  {% endif %}
+</section>
+{% endblock %}

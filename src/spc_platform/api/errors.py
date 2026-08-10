@@ -7,6 +7,8 @@ from fastapi.responses import JSONResponse
 
 from spc_platform.common.errors import (
     AuditWriteError,
+    DispositionRequiredError,
+    ExcursionStateError,
     InsufficientDataError,
     NoActiveBaselineError,
     SPCPlatformError,
@@ -27,6 +29,22 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(UnstableProcessError)
     async def _unstable(_request: Request, exc: UnstableProcessError) -> JSONResponse:
+        return JSONResponse(
+            status_code=409,
+            content={"error": type(exc).__name__, "message": str(exc), "context": exc.context},
+        )
+
+    @app.exception_handler(DispositionRequiredError)
+    async def _disposition_required(
+        _request: Request, exc: DispositionRequiredError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=409,
+            content={"error": type(exc).__name__, "message": str(exc), "context": exc.context},
+        )
+
+    @app.exception_handler(ExcursionStateError)
+    async def _excursion_state(_request: Request, exc: ExcursionStateError) -> JSONResponse:
         return JSONResponse(
             status_code=409,
             content={"error": type(exc).__name__, "message": str(exc), "context": exc.context},

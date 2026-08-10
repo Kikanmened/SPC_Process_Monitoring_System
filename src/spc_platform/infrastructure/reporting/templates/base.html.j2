@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{ title }}</title>
+  <style>
+    body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; margin: 2rem; color: #111; }
+    header.provenance { border: 1px solid #333; padding: 0.75rem 1rem; margin-bottom: 1.5rem; }
+    header.provenance dl { display: grid; grid-template-columns: 12rem 1fr; gap: 0.25rem 1rem; margin: 0; }
+    header.provenance dt { font-weight: 600; }
+    table.stats { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    table.stats th, table.stats td { border: 1px solid #444; padding: 0.4rem 0.6rem; text-align: left; }
+    .narrative p { margin: 0.4rem 0; }
+    .wafer-map { margin-top: 1.5rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <header class="provenance" data-provenance="required">
+    <h1>{{ title }}</h1>
+    <p>Report type: {{ report_type }}</p>
+    <dl>
+      <dt>data_revision</dt><dd>{{ provenance.data_revision }}</dd>
+      <dt>code_revision</dt><dd>{{ provenance.code_revision }}</dd>
+      <dt>config_revision</dt><dd>{{ provenance.config_revision }}</dd>
+      <dt>generated_at</dt><dd>{{ generated_at }}</dd>
+      <dt>recorded_at</dt><dd>{{ provenance.recorded_at.isoformat() }}</dd>
+    </dl>
+    {% if parameters %}
+    <h2>Parameters</h2>
+    <dl>
+      {% for key, value in parameters.items() %}
+      <dt>{{ key }}</dt><dd>{{ value }}</dd>
+      {% endfor %}
+    </dl>
+    {% endif %}
+  </header>
+  {% block body %}{% endblock %}
+  {% if wafer_map %}
+  <section class="wafer-map">
+    <h2>Wafer map (same view as dashboard)</h2>
+    <p>parameter={{ wafer_map.parameter_id }} unit={{ wafer_map.unit }}
+       n={{ wafer_map.n_sites_total }} mode={{ wafer_map.mode }}
+       colour_limits=[{{ wafer_map.vmin }}, {{ wafer_map.vmax }}]</p>
+    {% if wafer_map.aggregation_message %}
+    <p><strong>{{ wafer_map.aggregation_message }}</strong></p>
+    {% endif %}
+    <p>sites={{ wafer_map.x|length }} (x,y,z series from WaferMapView)</p>
+  </section>
+  {% endif %}
+</body>
+</html>

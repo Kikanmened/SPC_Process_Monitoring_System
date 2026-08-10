@@ -188,3 +188,114 @@ class ErrorBody(BaseModel):
     error: str
     message: str
     context: dict[str, Any] = Field(default_factory=dict)
+
+
+class GenerateReportRequestBody(BaseModel):
+    """Render an approved report artefact."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    report_type: str
+    parameter_id: str
+    product_id: str | None = None
+    lot_id: str | None = None
+    wafer_id: str | None = None
+    excursion_id: str | None = None
+    window_start: datetime | None = None
+    window_end: datetime | None = None
+    target: str = "html"
+    include_wafer_map: bool = False
+
+
+class GenerateReportResponse(BaseModel):
+    """Rendered report metadata and base64-safe text for HTML."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    report_type: str
+    target: str
+    media_type: str
+    content_text: str | None
+    content_sha256: str
+    data_revision: str
+    code_revision: str
+    config_revision: str
+
+
+class OpenExcursionRequest(BaseModel):
+    """Open an excursion from violations."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    parameter_id: str
+    lot_ids: list[str] = Field(min_length=1)
+    violation_ids: list[str] = Field(min_length=1)
+    product_id: str | None = None
+
+
+class ExcursionResponse(BaseModel):
+    """Excursion lifecycle snapshot."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    excursion_id: str
+    state: str
+    ocap_id: str | None
+    capa_id: str | None = None
+    eight_d_id: str | None = None
+
+
+class CloseExcursionRequest(BaseModel):
+    """Close an excursion with 8D or CAPA reference."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    excursion_id: str
+    capa_id: str | None = None
+    eight_d_id: str | None = None
+    reason: str = ""
+
+
+class AuditPackageRequest(BaseModel):
+    """Assemble a self-contained audit package."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    parameter_id: str
+    product_id: str
+    window_start: datetime
+    window_end: datetime
+    lot_id: str | None = None
+    excursion_id: str | None = None
+
+
+class AuditPackageResponse(BaseModel):
+    """Audit package digest for verification."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    content_sha256: str
+    bytes: int
+    data_revision: str
+    code_revision: str
+    config_revision: str
+
+
+class DispatchNotificationsRequest(BaseModel):
+    """Dispatch one digested notification batch."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    parameter_id: str | None = None
+    product_id: str | None = None
+
+
+class DispatchNotificationsResponse(BaseModel):
+    """Digest dispatch receipt."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    digest_id: str
+    recipient: str
+    item_count: int
+    transport: str

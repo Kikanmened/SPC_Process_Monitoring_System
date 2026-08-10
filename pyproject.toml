@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spc-platform"
-version = "0.12.0"
+version = "0.13.0"
 description = "Statistical process control monitoring platform for semiconductor wafer fabrication"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
@@ -206,6 +206,11 @@ ignore_missing_imports = true
 # to dashboard/ so the statistical core stays strictly typed.
 [[tool.mypy.overrides]]
 module = ["plotly", "plotly.*", "streamlit", "streamlit.*"]
+ignore_missing_imports = true
+
+# WeasyPrint has no py.typed marker; used only for optional PDF export.
+[[tool.mypy.overrides]]
+module = ["weasyprint", "weasyprint.*"]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]

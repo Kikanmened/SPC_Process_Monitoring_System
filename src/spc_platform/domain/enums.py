@@ -134,3 +134,22 @@ class EquipmentState(StrEnum):
     SCHEDULED_DOWNTIME = "scheduled_downtime"
     UNSCHEDULED_DOWNTIME = "unscheduled_downtime"
     NON_SCHEDULED = "non_scheduled"
+
+
+class ExcursionState(StrEnum):
+    """Lifecycle of an excursion investigation (FR-A01 - FR-A07)."""
+
+    DETECTED = "detected"
+    CONTAINED = "contained"
+    INVESTIGATING = "investigating"
+    DISPOSITIONED = "dispositioned"
+    CLOSED = "closed"
+
+
+class ReportType(StrEnum):
+    """Approved report artefacts (FR-RP01)."""
+
+    SPC_SUMMARY = "spc_summary"
+    CAPABILITY_STUDY = "capability_study"
+    MSA_REPORT = "msa_report"
+    EXCURSION_SUMMARY = "excursion_summary"

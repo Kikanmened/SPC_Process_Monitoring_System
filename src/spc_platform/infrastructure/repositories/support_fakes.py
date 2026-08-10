@@ -1,4 +1,4 @@
-"""In-memory adapters for Phase 11 support ports."""
+"""In-memory adapters for Phase 11/13 support ports."""
 
 from __future__ import annotations
 
@@ -8,7 +8,16 @@ from spc_platform.application.ports.authorisation import ProtectedAction
 from spc_platform.application.ports.violation_repository import StoredViolation
 from spc_platform.common.errors import UnauthorisedActionError
 from spc_platform.domain.disposition import Disposition
-from spc_platform.domain.ids import ActorId, LotId, ParameterId, ProductId
+from spc_platform.domain.enums import ExcursionState
+from spc_platform.domain.excursion import Excursion
+from spc_platform.domain.ids import (
+    ActorId,
+    ExcursionId,
+    LotId,
+    OcapId,
+    ParameterId,
+    ProductId,
+)
 from spc_platform.domain.specification_limit import SpecificationLimit
 
 
@@ -129,3 +138,59 @@ class FakeSpecificationRepository:
             return None
         candidates.sort(key=lambda item: item.effective_from, reverse=True)
         return candidates[0]
+
+
+class FakeExcursionRepository:
+    """Dict-backed excursion store."""
+
+    def __init__(self) -> None:
+        self._items: dict[str, Excursion] = {}
+
+    def save(self, excursion: Excursion) -> None:
+        """Insert or replace."""
+        self._items[str(excursion.excursion_id)] = excursion
+
+    def get(self, excursion_id: ExcursionId) -> Excursion | None:
+        """Return by id."""
+        return self._items.get(str(excursion_id))
+
+    def list_open(self, parameter_id: ParameterId | None = None) -> tuple[Excursion, ...]:
+        """Non-closed excursions, newest first."""
+        open_items = [
+            item
+            for item in self._items.values()
+            if item.state is not ExcursionState.CLOSED
+            and (parameter_id is None or item.parameter_id == parameter_id)
+        ]
+        open_items.sort(key=lambda item: item.opened_at, reverse=True)
+        return tuple(open_items)
+
+
+class FakeControlPlanLookup:
+    """In-memory OCAP map keyed by parameter, optionally product."""
+
+    def __init__(
+        self,
+        mapping: dict[tuple[str, str | None], OcapId] | None = None,
+    ) -> None:
+        self._mapping = mapping or {}
+
+    def seed(
+        self, parameter_id: ParameterId, ocap_id: OcapId, product_id: ProductId | None = None
+    ) -> None:
+        """Register an OCAP for tests and demos."""
+        self._mapping[(str(parameter_id), None if product_id is None else str(product_id))] = (
+            ocap_id
+        )
+
+    def ocap_for(
+        self,
+        parameter_id: ParameterId,
+        product_id: ProductId | None = None,
+    ) -> OcapId | None:
+        """Resolve OCAP, preferring an exact product match then parameter-only."""
+        if product_id is not None:
+            exact = self._mapping.get((str(parameter_id), str(product_id)))
+            if exact is not None:
+                return exact
+        return self._mapping.get((str(parameter_id), None))

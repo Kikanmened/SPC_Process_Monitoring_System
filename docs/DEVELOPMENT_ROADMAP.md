@@ -395,9 +395,10 @@ dashboard rendering (Phase 12).
 
 ---
 
-## Phase 13 — Reporting, excursion workflow, and audit packages
+## Phase 13 — Reporting, excursion workflow, and audit packages ✅
 
-**Effort:** M · **Depends on:** Phases 11, 12 · **Milestone:** M13
+**Status:** Complete (2026-08-10) · **Effort:** M · **Depends on:** Phases 11, 12 ·
+**Milestone:** M13
 
 **Deliverables**
 - Report templates: SPC summary, capability study, MSA report, excursion
@@ -410,9 +411,13 @@ dashboard rendering (Phase 12).
   configuration revision, disposition records (FR-RP04)
 
 **Exit criteria**
-- Every report regenerates identically from data + code + config revisions
-- Every statistic in every report carries n and window
-- An audit package is independently verifiable by its recipient
+- ~~Every report regenerates identically from data + code + config revisions~~ ✅
+  (HTML contract tests; PDF when WeasyPrint system libraries are present)
+- ~~Every statistic in every report carries n and window~~ ✅
+- ~~An audit package is independently verifiable by its recipient~~ ✅
+  (zip + SHA-256 + provenance manifest)
+
+**Deferred:** site SSO and containerised WeasyPrint runtime libs to Phase 14.
 
 ---
 
