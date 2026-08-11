@@ -5,3 +5,13 @@ prove what the system did and who instructed it, are append-only, and their
 loss is an audit finding. Same mechanism, incompatible requirements, separate
 sinks (SYSTEM_ARCHITECTURE.md §3.6).
 """
+
+from spc_platform.observability.logging import configure_logging, get_logger
+from spc_platform.observability.metrics import METRICS, MetricsRegistry
+
+__all__ = [
+    "METRICS",
+    "MetricsRegistry",
+    "configure_logging",
+    "get_logger",
+]

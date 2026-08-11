@@ -1,0 +1,47 @@
+# Staging Compose profile — PostgreSQL in Compose (DEPLOYMENT_PLAN.md §2).
+# Usage: docker compose -f docker-compose.yml -f docker-compose.staging.yml up --build
+
+name: spc-staging
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: spc
+      POSTGRES_PASSWORD: ${SPC_DB_PASSWORD:-spc-staging-only}
+      POSTGRES_DB: spc
+    volumes:
+      - spc-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spc -d spc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  api:
+    environment:
+      SPC_PROFILE: staging
+      SPC_AUTH_MODE: proxy
+      SPC_DATABASE_URL: postgresql+psycopg://spc:${SPC_DB_PASSWORD:-spc-staging-only}@db:5432/spc
+    depends_on:
+      db:
+        condition: service_healthy
+
+  dashboard:
+    environment:
+      SPC_PROFILE: staging
+      SPC_AUTH_MODE: proxy
+
+  scheduler:
+    environment:
+      SPC_PROFILE: staging
+      SPC_AUTH_MODE: proxy
+      SPC_DATABASE_URL: postgresql+psycopg://spc:${SPC_DB_PASSWORD:-spc-staging-only}@db:5432/spc
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  spc-pg:

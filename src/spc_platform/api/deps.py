@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Annotated
 
 from fastapi import Depends, Header, Request
@@ -22,12 +23,29 @@ def get_services(request: Request) -> ApplicationServices:
     return services
 
 
-def get_actor(x_actor_id: Annotated[str, Header(alias="X-Actor-Id")]) -> ActorId:
-    """Resolve the acting identity from the local/dev header (no SSO in Phase 11)."""
-    if not x_actor_id.strip():
+def get_actor(
+    x_actor_id: Annotated[str | None, Header(alias="X-Actor-Id")] = None,
+    x_forwarded_user: Annotated[str | None, Header(alias="X-Forwarded-User")] = None,
+) -> ActorId:
+    """Resolve actor from local header or trusted reverse-proxy SSO headers.
+
+    ``SPC_AUTH_MODE=header`` (default/local): require ``X-Actor-Id``.
+    ``SPC_AUTH_MODE=proxy`` (staging/production behind site SSO): accept
+    ``X-Forwarded-User`` set by the site reverse proxy after SSO/LDAP
+    (FR-CF05, DEPLOYMENT_PLAN.md §10).
+    """
+    mode = os.environ.get("SPC_AUTH_MODE", "header").strip().lower()
+    if mode == "proxy":
+        candidate = (x_forwarded_user or x_actor_id or "").strip()
+        if not candidate:
+            message = "proxy auth requires X-Forwarded-User (or X-Actor-Id fallback)"
+            raise ValueError(message)
+        return ActorId(candidate)
+    candidate = (x_actor_id or "").strip()
+    if not candidate:
         message = "X-Actor-Id header must identify the actor"
         raise ValueError(message)
-    return ActorId(x_actor_id.strip())
+    return ActorId(candidate)
 
 
 ServicesDep = Annotated[ApplicationServices, Depends(get_services)]

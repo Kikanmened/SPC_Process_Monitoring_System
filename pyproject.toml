@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spc-platform"
-version = "0.13.0"
+version = "0.14.0"
 description = "Statistical process control monitoring platform for semiconductor wafer fabrication"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
@@ -51,6 +51,7 @@ dependencies = [
 
 [project.scripts]
 spc = "spc_platform.cli:run"
+spc-platform = "spc_platform.cli:run"
 
 [dependency-groups]
 dev = [

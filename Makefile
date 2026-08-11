@@ -119,6 +119,31 @@ dataset-bench: ## Time the generator and report throughput
 demo: ## Launch the Streamlit dashboard against the local fake composition root
 	uv run --frozen streamlit run dashboard/app/main.py
 
+# --- Deployment (Phase 14) -------------------------------------------------
+
+.PHONY: stack
+stack: ## One command: build and start the local Compose stack with demo paths
+	docker compose up --build -d
+	@echo "API    http://localhost:8000/health"
+	@echo "UI     http://localhost:8501"
+	@echo "Ready  http://localhost:8000/ready"
+
+.PHONY: stack-staging
+stack-staging: ## Staging Compose profile with PostgreSQL
+	docker compose -f docker-compose.yml -f docker-compose.staging.yml up --build -d
+
+.PHONY: stack-down
+stack-down: ## Stop Compose services
+	docker compose down
+
+.PHONY: jobs
+jobs: ## Run the standard job set twice (idempotency check)
+	uv run --frozen python scripts/ops/run_jobs.py ingest evaluate notify archive backup --twice
+
+.PHONY: backup
+backup: ## Create a restorable backup archive under SPC_BACKUP_ROOT
+	uv run --frozen python scripts/ops/backup.py
+
 # --- Convenience -----------------------------------------------------------
 
 .PHONY: fix

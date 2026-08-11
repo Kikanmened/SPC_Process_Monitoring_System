@@ -174,19 +174,18 @@ specifications in [../modules/](../modules/).
 | 5 | Module design (`docs/MODULE_DESIGN.md`, `docs/modules/`) | Complete |
 | 6 | Toolchain and CI foundation | Complete |
 | 7 | Domain model and configuration | Complete |
-| 8 | Synthetic fab data generator | Next |
-| 9 | SPC analytics engine | Planned |
-| 10 | Data pipelines and persistence | Planned |
-| 11 | Application layer, API, CLI | Planned |
-| 12 | Dashboard | Planned |
-| 13 | Reporting, excursion workflow, audit packages | Planned |
-| 14 | Deployment and operations | Planned |
+| 8 | Synthetic fab data generator | Complete |
+| 9 | SPC analytics engine | Complete |
+| 10 | Data pipelines and persistence | Complete |
+| 11 | Application layer, API, CLI | Complete |
+| 12 | Dashboard | Complete |
+| 13 | Reporting, excursion workflow, audit packages | Complete |
+| 14 | Deployment and operations | Complete |
 | 15 | Advanced analytics | Stretch |
 
 Deliverables and exit criteria per phase are in
 [../DEVELOPMENT_ROADMAP.md](../DEVELOPMENT_ROADMAP.md); current status is in
 [../PROJECT_PROGRESS.md](../PROJECT_PROGRESS.md).
 
-Domain vocabulary and typed configuration exist; analytics and pipelines do
-not yet. That sequencing is deliberate: the types that make silent numerical
-errors unrepresentable landed before the first statistic is computed.
+Phases 1–14 are complete through a deployable on-prem stack. Phase 15
+(advanced analytics) remains stretch and gated.

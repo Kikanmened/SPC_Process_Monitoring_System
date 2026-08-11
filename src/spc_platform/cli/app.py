@@ -508,6 +508,11 @@ def create_cli(  # noqa: PLR0915 — registers use-case commands
             )
         )
 
+    @cli.command("health")
+    def cmd_health() -> None:
+        """Process liveness for containers and operators (DEPLOYMENT_PLAN §8)."""
+        typer.echo(json.dumps({"status": "ok"}))
+
     return cli
 
 

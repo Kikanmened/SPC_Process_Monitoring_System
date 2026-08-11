@@ -1,0 +1,110 @@
+# Local Compose profile — DuckDB + Parquet, no external cloud.
+# One command: docker compose up --build
+# Dashboard: http://localhost:8501  API: http://localhost:8000/health
+
+name: spc-local
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: spc-platform:${SPC_IMAGE_TAG:-local}
+    environment:
+      SPC_PROFILE: local
+      SPC_AUTH_MODE: header
+      SPC_DATA_ROOT: /var/spc/data
+      SPC_LOG_ROOT: /var/spc/logs
+      SPC_BACKUP_ROOT: /var/spc/backups
+    volumes:
+      - spc-data:/var/spc/data
+      - spc-logs:/var/spc/logs
+      - spc-backups:/var/spc/backups
+    ports:
+      - "8000:8000"
+    command:
+      - uvicorn
+      - spc_platform.api.app:create_app
+      - --factory
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  dashboard:
+    image: spc-platform:${SPC_IMAGE_TAG:-local}
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      SPC_PROFILE: local
+      SPC_AUTH_MODE: header
+      SPC_DATA_ROOT: /var/spc/data
+      SPC_LOG_ROOT: /var/spc/logs
+    volumes:
+      - spc-data:/var/spc/data
+      - spc-logs:/var/spc/logs
+    ports:
+      - "8501:8501"
+    healthcheck:
+      test: ["CMD", "spc-platform", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    command:
+      - streamlit
+      - run
+      - dashboard/app/main.py
+      - --server.address
+      - 0.0.0.0
+      - --server.port
+      - "8501"
+      - --browser.gatherUsageStats
+      - "false"
+
+  scheduler:
+    image: spc-platform:${SPC_IMAGE_TAG:-local}
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      SPC_PROFILE: local
+      SPC_AUTH_MODE: header
+      SPC_DATA_ROOT: /var/spc/data
+      SPC_LOG_ROOT: /var/spc/logs
+      SPC_BACKUP_ROOT: /var/spc/backups
+      SPC_SCHEDULER_ENABLED: "1"
+    volumes:
+      - spc-data:/var/spc/data
+      - spc-logs:/var/spc/logs
+      - spc-backups:/var/spc/backups
+      - ./data/raw:/var/spc/data/raw:ro
+    healthcheck:
+      test: ["CMD", "spc-platform", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    command:
+      - python
+      - -m
+      - spc_platform.scheduler
+      - --loop
+
+volumes:
+  spc-data:
+  spc-logs:
+  spc-backups:

@@ -20,7 +20,7 @@ include_external_packages = True
 name = Hexagonal layering: dependencies point inward, without exception
 type = layers
 layers =
-    cli : api
+    cli : api : scheduler
     pipelines : infrastructure
     application
     analytics
@@ -28,10 +28,10 @@ layers =
 containers =
     spc_platform
 
-; `cli` and `api` are interchangeable front doors and are also the composition
-; root, which is why they alone may reach infrastructure. `pipelines` and
-; `infrastructure` are independent siblings: a pipeline stage reaches storage
-; through an application port, never through an adapter directly.
+; `cli`, `api`, and `scheduler` are interchangeable front doors and are also
+; the composition root, which is why they alone may reach infrastructure.
+; `pipelines` and `infrastructure` are independent siblings: a pipeline stage
+; reaches storage through an application port, never through an adapter directly.
 
 ; ---------------------------------------------------------------------------
 ; Domain — rule 1: imports nothing from this repository
@@ -122,6 +122,7 @@ forbidden_modules =
     spc_platform.pipelines
     spc_platform.api
     spc_platform.cli
+    spc_platform.scheduler
     dashboard
     duckdb
     sqlalchemy
@@ -240,6 +241,7 @@ source_modules =
     spc_platform.pipelines
     spc_platform.api
     spc_platform.cli
+    spc_platform.scheduler
     spc_platform.observability
 forbidden_modules =
     spc_platform.simulation

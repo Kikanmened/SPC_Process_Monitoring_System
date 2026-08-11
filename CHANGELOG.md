@@ -21,7 +21,34 @@ invalidated.
 
 ## [Unreleased]
 
-### Planned — Phase 14: Deployment and operations
+### Planned — Phase 15: Advanced analytics (stretch)
+
+---
+
+## [0.14.0] — 2026-08-10
+
+**Phase 14 — Deployment and operations.** On-prem Docker Compose stack, idempotent
+scheduled jobs, health/metrics, and a tested backup/restore drill. No cloud
+runtime dependencies (CON-2, ADR-0014).
+
+### Added
+
+- Multi-stage non-root `Dockerfile` with WeasyPrint system libraries; local and
+  staging Compose profiles (`make stack`, `make stack-staging`)
+- Scheduler composition root: ingest, evaluate, notify, daily-report, archive,
+  backup — double-run fingerprint tests (NFR-R01)
+- `/health`, `/ready`, `/metrics`; structured JSON logging; `spc health` /
+  `spc-platform health` for container probes
+- `SPC_AUTH_MODE=proxy` for trusted reverse-proxy SSO headers (`X-Forwarded-User`)
+- Backup/restore scripts and drill coverage (NFR-R03)
+- Runbooks: stack startup, scheduler jobs, job failure, backup/restore
+- Secrets templates under `configs/secrets/*.example.yaml`
+
+### Notes
+
+- Kubernetes remains deferred (DEPLOYMENT_PLAN.md §12)
+- Site LDAP directory integration stays at the reverse proxy; the platform
+  consumes the trusted identity header
 
 ---
 

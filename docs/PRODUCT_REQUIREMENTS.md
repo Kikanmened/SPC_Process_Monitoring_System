@@ -702,7 +702,7 @@ delivery.
 - [ ] Detection performance scored against ground truth and recorded in `docs/validation/`
 - [ ] Every output carries complete provenance
 - [ ] Audit trail complete for every event in FR-AU03
-- [ ] Deployment verified, including a restore drill
+- [x] Deployment verified, including a restore drill
 - [ ] No open S1 or S2 defect
 
 ### 16.4 Project level

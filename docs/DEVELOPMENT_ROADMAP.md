@@ -421,7 +421,7 @@ dashboard rendering (Phase 12).
 
 ---
 
-## Phase 14 — Deployment and operations
+## Phase 14 — Deployment and operations · Complete (0.14.0)
 
 **Effort:** M · **Depends on:** Phase 13 · **Milestone:** M14
 
@@ -438,6 +438,9 @@ dashboard rendering (Phase 12).
 - All scheduled jobs are idempotent — verified by running each twice (NFR-R01)
 - Restore from backup is tested, not assumed (NFR-R03)
 - Every runbook has been executed at least once
+
+**Done.** `make stack` / Compose local+staging; scheduler jobs with double-run
+fingerprints; `/health` `/ready` `/metrics`; backup/restore drill and runbooks.
 
 ---
 

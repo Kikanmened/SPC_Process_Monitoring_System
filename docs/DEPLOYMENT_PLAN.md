@@ -1,8 +1,8 @@
 # Deployment Plan
 
 **Document owner:** Project lead
-**Status:** Active — plan fixed, implementation in Phase 14
-**Last updated:** 2026-08-03
+**Status:** Active — implemented in Phase 14 (0.14.0); plan remains authoritative
+**Last updated:** 2026-08-10
 
 ---
 

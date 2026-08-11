@@ -2,7 +2,7 @@
 
 **Document owner:** Project lead
 **Status:** Living document — updated at the close of every working session
-**Last updated:** 2026-08-07
+**Last updated:** 2026-08-10
 
 The current state of the project in one place. This is the document to read
 first when resuming work after a break, and the one the AI agent should consult
@@ -17,12 +17,12 @@ release history see [CHANGELOG.md](../CHANGELOG.md).
 
 | | |
 |---|---|
-| **Current phase** | Phase 14 — Deployment and operations |
-| **Phases complete** | 13 of 15 |
-| **Application code** | Domain through pipelines, use cases, API/CLI, dashboard, reports |
+| **Current phase** | Phase 15 — Advanced analytics (stretch, gated) |
+| **Phases complete** | 14 of 15 |
+| **Application code** | Domain through pipelines, use cases, API/CLI, dashboard, reports, deploy |
 | **Repository** | Initialised; see git remotes for hosting |
-| **Last milestone** | M13 — reporting and audit packages (2026-08-10) |
-| **Next milestone** | M14 — deployable stack |
+| **Last milestone** | M14 — deployable stack (2026-08-10) |
+| **Next milestone** | M15 — advanced analytics (stretch only) |
 
 ```
 Phase  1 ████████████ Structure              complete
@@ -38,7 +38,7 @@ Phase 10 ████████████ Pipelines + storage    complete
 Phase 11 ████████████ Application + API      complete
 Phase 12 ████████████ Dashboard              complete
 Phase 13 ████████████ Reporting + audit      complete
-Phase 14 ░░░░░░░░░░░░ Deployment             next
+Phase 14 ████████████ Deployment             complete
 Phase 15 ░░░░░░░░░░░░ Advanced analytics (stretch)
 ```
 
@@ -377,6 +377,24 @@ type; e2e violation → excursion summary; `make check` green at 0.13.0.
 
 **Exit criteria met.** Containerised PDF runtime and SSO remain Phase 14.
 
+### Phase 14 — Deployment and operations · 2026-08-10
+
+On-prem Compose stack matching DEPLOYMENT_PLAN.md: multi-stage non-root image,
+local DuckDB profile and staging Postgres overlay, scheduler jobs, health and
+metrics, backup/restore drill, runbooks. SSO is trusted reverse-proxy headers
+(`SPC_AUTH_MODE=proxy`), not an invented LDAP client.
+
+- `Dockerfile`, `docker-compose.yml`, `docker-compose.staging.yml`; `make stack`
+- Scheduler under `src/spc_platform/scheduler/` (ingest, evaluate, notify,
+  daily-report, archive, backup) with fingerprint idempotency
+- `/health`, `/ready`, `/metrics`; structlog JSON; `spc-platform health`
+- Ops scripts and runbooks under `scripts/ops/` and `docs/runbooks/`
+
+**Verified:** job double-run fingerprints (NFR-R01); backup/restore unit drill
+(NFR-R03); API health/ready/metrics; `make check` green at 0.14.0.
+
+**Exit criteria met.** Kubernetes remains deferred. Phase 15 is stretch only.
+
 ## 3. Decisions settled
 
 Twenty-two architecture decisions are recorded in
@@ -398,7 +416,7 @@ that follows:
 
 ## 4. Open questions
 
-Tracked here until they become decisions. None currently blocks Phase 14.
+Tracked here until they become decisions. None currently blocks Phase 15 stretch work.
 
 | # | Question | Needed by | Notes |
 |---|---|---|---|
@@ -428,15 +446,11 @@ Full register in [RISK_REGISTER.md](RISK_REGISTER.md). Requiring attention now:
 
 ## 6. Next actions
 
-Phase 14, in order:
+Phase 15 is stretch and gated (R-10). Attempt only when Phases 1–14 remain solid
+and a candidate from DEVELOPMENT_ROADMAP.md Phase 15 is explicitly chosen.
 
-1. Multi-stage Docker images and Compose profiles
-2. Scheduled jobs (ingest, evaluate, report, archive) with idempotency proof
-3. Health checks, metrics, log shipping, runbooks
-4. Backup/restore drill
-
-**Phase 14 exit check:** one command brings up a working stack with demo data;
-restore from backup is tested.
+Until then: operate the stack (`make stack`), keep restore drills current, and
+resolve Q5 before building proposed Modules 5–8 requirements.
 
 ## 7. Metrics
 
@@ -444,13 +458,13 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 | Metric | Current | Target |
 |---|---|---|
-| Phases complete | 13 / 15 | 15 |
+| Phases complete | 14 / 15 | 15 |
 | Cursor rules | 7 | 7 |
 | Documentation files | 30 | — |
 | Identified requirements | 74 FR + 43 NFR | Traced to tests |
 | Proposed requirements awaiting approval | 20 | Approved or rejected (Q5) |
 | Modules specified | 10 / 10 | 10 |
-| Modules with code landed | 8 / 10 (+ Module 9 reports/packages; Module 7 excursion lifecycle) | 10 |
+| Modules with code landed | 9 / 10 (+ Module 10 observability/proxy auth; Module 9 reports; Module 7 excursions) | 10 |
 | Tests | 870+ across six tiers (Postgres cases skipped without URL) | — |
 | Statistical checks on the default dataset | 153 passed, 3 characteristics unchecked | Every characteristic checked |
 | Reference-validated statistical cases | Full analytics suite (constants, charts, rules, capability, MSA, ARL, detection power, spatial) | Maintained |
@@ -463,6 +477,17 @@ Populated as the project progresses. Zeros below are accurate, not placeholders.
 
 Newest first. One entry per working session, recording what changed and what
 the next session should pick up.
+
+### 2026-08-10 — Phase 14: Deployment and operations
+
+Closed the on-prem deploy path. Compose brings up API, dashboard, and scheduler;
+jobs are idempotent by fingerprint; backup/restore is tested; runbooks cover
+startup, jobs, failure, and restore. Proxy SSO mode consumes
+`X-Forwarded-User`.
+
+**Verified:** NFR-R01 / NFR-R03 tests; health endpoints; `make check` at 0.14.0.
+
+**Next:** Phase 15 only if explicitly chosen (stretch).
 
 ### 2026-08-10 — Phase 13: Reporting, excursion workflow, and audit packages
 
