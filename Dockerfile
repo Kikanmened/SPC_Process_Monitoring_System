@@ -7,6 +7,13 @@ FROM python:3.13-slim-bookworm AS builder
 COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /usr/local/bin/uv
 WORKDIR /build
 
+# Install into /opt/venv (not /build/.venv) so console-script shebangs still
+# resolve after the runtime-stage copy. Relocating .venv breaks #! paths and
+# yields: exec /opt/venv/bin/uvicorn: no such file or directory.
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1
+
 COPY pyproject.toml uv.lock README.md ./
 COPY src/ src/
 COPY dashboard/ dashboard/
@@ -34,7 +41,7 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY --from=builder --chown=spc:spc /build/.venv /opt/venv
+COPY --from=builder --chown=spc:spc /opt/venv /opt/venv
 COPY --chown=spc:spc src/ /app/src/
 COPY --chown=spc:spc dashboard/ /app/dashboard/
 COPY --chown=spc:spc configs/ /app/configs/
@@ -42,6 +49,8 @@ COPY --chown=spc:spc data/reference/ /app/data/reference/
 COPY --chown=spc:spc scripts/ops/ /app/scripts/ops/
 COPY --chown=spc:spc migrations/ /app/migrations/
 COPY --chown=spc:spc alembic.ini /app/alembic.ini
+COPY scripts/ops/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod 755 /usr/local/bin/docker-entrypoint.sh
 
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONPATH="/app/src:/app" \
@@ -49,7 +58,8 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-USER spc
+# Entrypoint starts as root only to chown volume mounts, then setpriv to uid 10001.
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 8000 8501
 
