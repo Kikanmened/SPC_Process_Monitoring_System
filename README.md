@@ -4,11 +4,14 @@ A Statistical Process Control monitoring platform for semiconductor wafer
 fabrication — built to the engineering standard of an internal fab analytics
 tool rather than a demonstration project.
 
-> **Status: Phase 7 of 15 complete — domain and configuration.**
-> Structure, documentation, requirements, Cursor rules, module design,
-> toolchain, and the domain vocabulary with typed configuration are in place.
-> The synthetic data generator begins at Phase 8. See
-> [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
+> **Status: Phases 1–14 complete (release 0.14.0) — deployable on-prem stack.**
+> Domain, analytics, pipelines, API/CLI, dashboard, reports, and Docker Compose
+> operations are in place. Phase 15 (advanced analytics) is stretch and gated.
+> See [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
+
+**Deployment assumption:** on-premises Docker Compose; **no public cloud** at
+runtime ([ADR-0014](docs/DECISION_LOG.md#adr-0014), CON-2). Fab process data
+must not leave the site. All repository data is synthetic.
 
 ---
 
@@ -44,6 +47,49 @@ and enabling every run rule at once.
 | **Spatial analysis** | Wafer maps and radial/edge signature detection — patterns invisible in a time series that often carry the root cause |
 | **Tool and chamber matching** | The most common source of an apparent process shift is a tool-to-tool offset, not the process |
 | **Excursion workflow** | Alarm acknowledgement, OCAP linkage, disposition, and an append-only audit trail |
+| **On-prem operations** | Compose stack (API, dashboard, scheduler), health/metrics, idempotent jobs, tested backup/restore |
+
+## Dashboard tour
+
+The Streamlit interface follows the investigation sequence used by metrology,
+process, and quality engineers: establish stability, evaluate capability,
+localise variation, and confirm that the measurement system can be trusted.
+The bundled demo uses synthetic fab data and in-process adapters, so these
+views run without a database or external services.
+
+### 1. Control chart — Is the process stable?
+
+The control-chart view overlays Phase II control limits and specification
+limits without conflating them. Every chart includes its estimator, baseline,
+sample count, analysis window, and data/configuration revisions.
+
+![Phase II individuals control chart for oxide thickness](dashboard/assets/screenshots/control-chart.png)
+
+### 2. Capability — Can the stable process meet specifications?
+
+Capability indices are reported only after the process has passed the
+stability gate. The view distinguishes potential capability (Cp/Cpk) from
+overall performance (Pp/Ppk) and names the sigma estimator, sample count, and
+analysis window behind each result.
+
+![Capability analysis for a stable oxide-thickness process](dashboard/assets/screenshots/capability-analysis.png)
+
+### 3. Wafer map — Where is the variation occurring?
+
+The wafer-map view plots measurements at true site coordinates, preserves the
+wafer boundary, edge exclusion, and notch, and makes the colour-scale mode and
+numeric range explicit. The same typed view can be exported as a static PNG for
+reports and audit packages.
+
+![Wafer map for oxide thickness with fixed colour scale](dashboard/assets/screenshots/wafer-map.png)
+
+### 4. Gauge R&R — Can the measurement system be trusted?
+
+The MSA workspace runs a crossed ANOVA Gauge R&R study against configured
+acceptance bands and reports study variation, the decision criterion, and the
+number of distinct categories (NDC).
+
+![Gauge R&R measurement-system analysis dashboard](dashboard/assets/screenshots/msa-gauge-rr.png)
 
 ## What makes it different
 
@@ -72,6 +118,10 @@ criteria, because either alone is trivially satisfiable.
 **Every number is traceable.** Data revision, code revision, and configuration
 revision travel with every chart, capability result, and report.
 
+**Cloud is excluded by design.** The stack runs on-prem with no managed cloud
+runtime dependency, matching how fabs actually handle confidential process
+data ([DEPLOYMENT_PLAN.md](docs/DEPLOYMENT_PLAN.md)).
+
 ## Documentation
 
 | Read this | To answer |
@@ -93,7 +143,8 @@ revision travel with every chart, capability result, and report.
 | [CHANGELOG.md](CHANGELOG.md) | What changed, and when? |
 
 New to the project? Read `PROJECT_CONTEXT`, then `SYSTEM_ARCHITECTURE`, then
-`GLOSSARY`. That is enough to contribute.
+`GLOSSARY`. That is enough to contribute. For current status, start with
+`PROJECT_PROGRESS`.
 
 ## Repository layout
 
@@ -121,7 +172,7 @@ rationale in
 
 ```mermaid
 graph LR
-    UI[dashboard · api · cli] --> APP[application<br/>use cases · ports]
+    UI[dashboard · api · cli · scheduler] --> APP[application<br/>use cases · ports]
     APP --> DOM[domain<br/>entities · invariants]
     APP --> ANA[analytics<br/>SPC · capability · MSA]
     ANA --> DOM
@@ -137,25 +188,42 @@ statsmodels. The rule is enforced by `import-linter` in CI, not by convention.
 
 Python 3.13 · NumPy · SciPy · statsmodels · pandas · Pandera · Pydantic v2 ·
 DuckDB · PostgreSQL + TimescaleDB · FastAPI · Streamlit · Plotly · uv · Ruff ·
-mypy · pytest · Hypothesis · Docker · GitHub Actions
+mypy · pytest · Hypothesis · Docker Compose · GitHub Actions
 
 Selections and rejected alternatives in [TECH_STACK.md](docs/TECH_STACK.md).
 
 ## Getting started
 
-Phases 1–7 established structure, documentation, requirements, Cursor
-behavioral controls, module design, toolchain, and the domain model. From
-Phase 8 the entry point will grow toward:
+**No Docker (clone-and-run dashboard):**
 
 ```bash
-make setup    # uv sync --frozen, install toolchain and package
-make check    # the full quality gate set, identical to CI
-make demo     # generate synthetic fab data and launch the dashboard
+make install   # uv sync --frozen --all-groups
+make check     # full quality gate set (same as CI)
+make demo      # Streamlit UI with in-process fakes
 ```
 
-The design requirement is that a reviewer can clone the repository and see
-working control charts within minutes, with no database and no containers.
-That is why the storage layer sits behind a port.
+Dashboard: [http://localhost:8501](http://localhost:8501)
+
+**Full on-prem stack (API + dashboard + scheduler):**
+
+```bash
+make install
+make stack     # docker compose up --build -d
+curl -s http://localhost:8000/health
+curl -s http://localhost:8000/ready
+```
+
+- API health: [http://localhost:8000/health](http://localhost:8000/health)
+- Dashboard: [http://localhost:8501](http://localhost:8501)
+- Stop: `make stack-down`
+
+Ops proof points: `make jobs` (idempotent double-run), `make backup`.
+Runbooks live under [docs/runbooks/](docs/runbooks/). Deployment design:
+[DEPLOYMENT_PLAN.md](docs/DEPLOYMENT_PLAN.md).
+
+A reviewer can clone and see working control charts within minutes with no
+database and no containers (`make demo`). That is why the storage layer sits
+behind a port. The Compose path is the fab-shaped deployment profile.
 
 ## Roadmap
 
@@ -168,14 +236,14 @@ That is why the storage layer sits behind a port.
 | 5 | Module design | ✅ Complete |
 | 6 | Toolchain and CI foundation | ✅ Complete |
 | 7 | Domain model and configuration | ✅ Complete |
-| 8 | Synthetic fab data generator | Next |
-| 9 | SPC analytics engine | Planned |
-| 10 | Data pipelines and persistence | Planned |
-| 11 | Application layer, API, CLI | Planned |
-| 12 | Dashboard | Planned |
-| 13 | Reporting, excursion workflow, audit packages | Planned |
-| 14 | Deployment and operations | Planned |
-| 15 | Advanced analytics | Stretch |
+| 8 | Synthetic fab data generator | ✅ Complete |
+| 9 | SPC analytics engine | ✅ Complete |
+| 10 | Data pipelines and persistence | ✅ Complete |
+| 11 | Application layer, API, CLI | ✅ Complete |
+| 12 | Dashboard | ✅ Complete |
+| 13 | Reporting, excursion workflow, audit packages | ✅ Complete |
+| 14 | Deployment and operations | ✅ Complete (0.14.0) |
+| 15 | Advanced analytics | Stretch (gated) |
 
 Deliverables and exit criteria per phase in
 [DEVELOPMENT_ROADMAP.md](docs/DEVELOPMENT_ROADMAP.md); requirements and
