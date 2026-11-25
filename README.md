@@ -4,10 +4,14 @@ A Statistical Process Control monitoring platform for semiconductor wafer
 fabrication — built to the engineering standard of an internal fab analytics
 tool rather than a demonstration project.
 
-> **Status: Phases 1–14 complete (release 0.14.0) — deployable on-prem stack.**
+> **Status: Phases 1–14 complete (release 0.14.0) — on-prem reference stack implemented.**
 > Domain, analytics, pipelines, API/CLI, dashboard, reports, and Docker Compose
 > operations are in place. Phase 15 (advanced analytics) is stretch and gated.
 > See [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
+
+This status describes implemented scope, not qualification for production use
+or evidence that an arbitrary commit has passed CI. Verify the exact revision
+using the checks under [Verification evidence](#verification-evidence).
 
 **Deployment assumption:** on-premises Docker Compose; **no public cloud** at
 runtime ([ADR-0014](docs/DECISION_LOG.md#adr-0014), CON-2). Fab process data
@@ -91,36 +95,99 @@ number of distinct categories (NDC).
 
 ![Gauge R&R measurement-system analysis dashboard](dashboard/assets/screenshots/msa-gauge-rr.png)
 
+## Scientific scope and non-claims
+
+This repository demonstrates statistical methods and software controls using
+synthetic semiconductor data. Its conclusions are deliberately bounded:
+
+- **Synthetic evidence is not factory evidence.** Injected faults make
+  detection rate, latency, localisation, and false-alarm behaviour measurable
+  under the generator's assumptions. They do not establish sensitivity on a
+  particular process, tool fleet, product, or fab.
+- **Detected patterns are not proven causes.** A rule violation, spatial
+  signature, or tool offset is evidence for investigation. The platform does
+  not confirm plasma physics, equipment failure, or causal root cause.
+- **An MSA calculation is not metrological traceability.** Gauge R&R, bias,
+  linearity, stability, and NDC results describe supplied study data. They do
+  not prove calibration status, uncertainty, reference-material suitability,
+  or laboratory accreditation.
+- **Capability is conditional.** Capability results are refused when the
+  evaluated window is unstable, but an in-control result does not by itself
+  prove distributional fit, sampling representativeness, or future product
+  conformity.
+- **The software is decision support, not process control.** It does not issue
+  recipe changes, actuate equipment, release material, or replace an approved
+  control plan, OCAP, engineering review, or quality-system disposition.
+- **Standards alignment is not certification.** References to IATF 16949,
+  AIAG, VDA, or SEMI describe vocabulary and design alignment; they do not
+  claim certification, customer approval, or validation for a regulated
+  production environment.
+
 ## What makes it different
 
-**The statistics are verified, not asserted.** `tests/statistical/` is a
-separate test tier with its own CI stage. Expected values come from
-NIST/SEMATECH and Montgomery — every one cited, and every source publicly
-obtainable, so a reviewer can check any assertion rather than take it on trust.
-Snapshotting current output as an expected value is prohibited, because that
-freezes whatever bug exists today.
+**Statistical implementations are checked against evidence outside the
+implementation.** `tests/statistical/` is a separate test tier with its own CI
+stage. Numerical expectations come from cited NIST/SEMATECH and Montgomery
+examples, hand-computed cases, analytical invariants, or seeded simulation.
+Snapshotting current output as an expected value is prohibited because it
+would preserve the implementation's existing error.
 
 **Detection is scored against ground truth.** All data is synthetic, generated
 with a nested, physically motivated variance structure and deliberately
 injected faults of known type, magnitude, and onset. That makes detection rate,
-detection latency, localisation accuracy, and false-alarm rate *measurable* —
-a claim a real-data project cannot make, because real data has no ground truth
-on process state.
+detection latency, localisation accuracy, and false-alarm rate measurable for
+the simulated scenarios. Real production data rarely provides equally complete
+labels, and performance on the generator must not be presented as field
+performance.
 
-**The defining SPC error is structurally impossible.** `SpecificationLimit` and
-`ControlLimit` are distinct types with no conversion between them. Drawing spec
-limits as control limits cannot be expressed in this codebase.
+**The defining SPC error is blocked in the typed application path.**
+`SpecificationLimit` and `ControlLimit` are distinct types with no conversion
+between them. Repository tests reject cross-shaped payloads; this protects the
+platform boundary without claiming that external data or downstream consumers
+are automatically correct.
 
 **False alarms are treated as defects.** Measured ARL₀ is asserted against
 theory within ±15%. Sensitivity and false-alarm rate are both acceptance
 criteria, because either alone is trivially satisfiable.
 
-**Every number is traceable.** Data revision, code revision, and configuration
-revision travel with every chart, capability result, and report.
+**Every emitted analytical result is designed to be traceable.** Data revision,
+code revision, and configuration revision travel with charts, capability
+results, and reports. Traceability identifies inputs and logic; it does not by
+itself establish that either was scientifically appropriate.
 
 **Cloud is excluded by design.** The stack runs on-prem with no managed cloud
 runtime dependency, matching how fabs actually handle confidential process
 data ([DEPLOYMENT_PLAN.md](docs/DEPLOYMENT_PLAN.md)).
+
+## Verification evidence
+
+Verification is organised by the kind of confidence it provides. No single
+test count or coverage percentage is treated as proof of scientific validity.
+
+| Question | Evidence in this repository | What it does not establish |
+|---|---|---|
+| Are numerical implementations correct on known cases? | Cited published examples, hand calculations, property-based invariants, and deterministic tests in `tests/statistical/` | Correctness outside the tested assumptions and parameter ranges |
+| Are alarm characteristics plausible under controlled conditions? | Seeded ARL₀/ARL₁ studies and scoring against faults with known onset and magnitude | Detection performance on real fab data or proof of physical causality |
+| Are invalid analyses refused? | Tests for absent baselines, unstable capability windows, insufficient designs, invalid units, and malformed boundary payloads | That every possible misuse or upstream data-quality failure has been anticipated |
+| Do system boundaries behave consistently? | Unit, contract, integration, end-to-end, migration, and repository-adapter tests | Production availability, disaster recovery objectives, or site-specific infrastructure qualification |
+| Are dependency and architecture rules enforced? | Ruff, `mypy --strict`, `import-linter`, Bandit, dependency audit, secret scanning, and documentation-link checks | A complete security assessment, penetration test, or supply-chain guarantee |
+| Do dashboards communicate the tested results? | Assertions on chart/view data plus the reviewed captures above | Pixel-perfect rendering, complete accessibility certification, or correct human interpretation |
+
+Run the evidence against the exact checkout rather than relying on the presence
+of workflow files or on an old test count:
+
+```bash
+make install   # reproduce the locked Python 3.13 environment
+make check     # format, lint, types, architecture, docs, all test tiers, security, coverage
+```
+
+`make check` and GitHub Actions call the same gate definitions in
+[`scripts/ci/gate.sh`](scripts/ci/gate.sh). A workflow configuration is not a
+pass result: for a public claim, cite the green check for the exact commit or
+publish a dated verification record with the command, environment, revision,
+and result. The full rationale, reference hierarchy, coverage policy, and known
+test exclusions are documented in
+[`TESTING_STRATEGY.md`](docs/TESTING_STRATEGY.md).
 
 ## Documentation
 
